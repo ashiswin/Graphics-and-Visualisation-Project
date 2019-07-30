@@ -8,15 +8,18 @@
 
 #include <object.h>
 #include <shader.h>
+#include <texture.h>
 
 Object::Object() {
     glGenVertexArrays(1, &vaoId);
+
+    hasNormalMap = false;
 
     transformation = glm::mat4(1.0f);
     yaw = 0.0f;
 
     shineDampener = 1;
-    reflectivity = 1;
+    reflectivity = 0;
 }
 
 void Object::spin() {
@@ -83,7 +86,7 @@ void Object::loadFromObj(char* filename) {
         else if(s == "f") {
             char scratch;
             int v1, v2, v3, n1, n2, n3, t1, t2, t3;
-
+            int v4, n4, t4;
             int slashes = 0;
 
             for(int i = 0; i < strlen(buffer); i++) {
@@ -94,6 +97,8 @@ void Object::loadFromObj(char* filename) {
                 ss >> v1 >> scratch >> t1 >> scratch >> n1;
                 ss >> v2 >> scratch >> t2 >> scratch >> n2;
                 ss >> v3 >> scratch >> t3 >> scratch >> n3;
+
+                if(slashes > 6) ss >> v4 >> scratch >> t4 >> scratch >> n4;
             }
             else {
                 ss >> v1 >> scratch >> t1;
@@ -105,17 +110,44 @@ void Object::loadFromObj(char* filename) {
 
             std::vector<unsigned> face;
 
-            face.push_back(v1);
-            face.push_back(v2);
-            face.push_back(v3);
-            face.push_back(n1);
-            face.push_back(n2);
-            face.push_back(n3);
-            face.push_back(t1);
-            face.push_back(t2);
-            face.push_back(t3);
+            if(slashes <= 6) {
+                face.push_back(v1);
+                face.push_back(v2);
+                face.push_back(v3);
+                face.push_back(n1);
+                face.push_back(n2);
+                face.push_back(n3);
+                face.push_back(t1);
+                face.push_back(t2);
+                face.push_back(t3);
 
-            vecf.push_back(face);
+                vecf.push_back(face);
+            }
+            else {
+                face.push_back(v1);
+                face.push_back(v2);
+                face.push_back(v4);
+                face.push_back(n1);
+                face.push_back(n2);
+                face.push_back(n4);
+                face.push_back(t1);
+                face.push_back(t2);
+                face.push_back(t4);
+                vecf.push_back(face);
+
+                std::vector<unsigned> face2;
+                face2.push_back(v2);
+                face2.push_back(v3);
+                face2.push_back(v4);
+                face2.push_back(n2);
+                face2.push_back(n3);
+                face2.push_back(n4);
+                face2.push_back(t2);
+                face2.push_back(t3);
+                face2.push_back(t4);
+
+                vecf.push_back(face2);
+            }
         }
     }
     
@@ -216,6 +248,15 @@ Shader* Object::getShader() {
     return shader;
 }
 
+void Object::setTexture(Texture* texture) {
+    this->texture = texture;
+}
+
+void Object::setNormalMap(Texture* normals) {
+    this->normalMap = normals;
+    hasNormalMap = true;
+}
+
 void Object::draw() {
     shader->loadModelMatrix(transformation);
     shader->loadSpecularComponents(shineDampener, reflectivity);
@@ -225,11 +266,21 @@ void Object::draw() {
     if(hasTextures) glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
+    if(texture != NULL) {
+        shader->enableTexture();
+        texture->bind(GL_TEXTURE0);
+    }
+    if(hasNormalMap) {
+        shader->enableNormalMap();
+        normalMap->bind(GL_TEXTURE1);
+    }
+
     GLenum err;
     while((err = glGetError()) != GL_NO_ERROR)
     {
         std::cout << "Error in Object::draw 1: " << err << std::endl;
     }
+
 
     glDrawElements(GL_TRIANGLES, nIndices, GL_UNSIGNED_INT, 0);
 

@@ -7,6 +7,7 @@ in vec3 normal;
 out vec3 surfaceNormal;
 out vec3 toLightVector;
 out vec3 toCameraVector;
+out vec2 pass_texCoords;
 
 uniform mat4 modelMatrix;
 uniform mat4 projectionMatrix;
@@ -21,4 +22,6 @@ void main() {
   surfaceNormal = (modelMatrix * vec4(normal, 0.0)).xyz;
   toLightVector = lightPosition - worldPosition.xyz;
   toCameraVector = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;
+
+  pass_texCoords = texCoords;
 }

@@ -5,6 +5,7 @@
 #include <glm/mat4x4.hpp>
 
 class Shader;
+class Texture;
 
 class Object {
     public:
@@ -13,6 +14,9 @@ class Object {
         void loadFromObj(char* filename);
         void setShader(Shader* shader);
         Shader* getShader();
+        void setTexture(Texture* texture);
+        void setNormalMap(Texture* normals);
+
         void draw();
         void spin();
         
@@ -30,8 +34,11 @@ class Object {
         float yaw;
 
         bool hasTextures = false;
+        bool hasNormalMap = false;
         float reflectivity, shineDampener;
-        
+        Texture* texture;
+        Texture* normalMap;
+
         glm::mat4 transformation;
 };
 #endif

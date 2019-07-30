@@ -49,6 +49,15 @@ bool Shader::compile() {
     GLint success = GL_FALSE;
     glGetProgramiv(program, GL_LINK_STATUS, &success);
 
+    if (success == GL_FALSE) 
+    {
+        char logBuf[1024];
+        int len;
+
+        glGetProgramInfoLog(program, 1024, &len, logBuf);
+        std::cout << "Could not link shaders due to error: " << logBuf << std::endl;
+        return false;
+    }
     modelMatrixLocation = getUniformLocation("modelMatrix");
     projectionMatrixLocation = getUniformLocation("projectionMatrix");
     viewMatrixLocation = getUniformLocation("viewMatrix");
@@ -57,6 +66,10 @@ bool Shader::compile() {
     lightColorLocation = getUniformLocation("lightColor");
     shineDamperLocation = getUniformLocation("shineDamper");
     reflectivityLocation = getUniformLocation("reflectivity");
+    hasNormalMapLocation = getUniformLocation("hasNormalMap");
+
+    normalMapLocation = getUniformLocation("normalSampler");
+    textureLocation = getUniformLocation("textureSampler");
 
     return success == GL_TRUE;
 }
@@ -86,6 +99,16 @@ void Shader::loadLight(Light *light) {
     glUniform3fv(lightPositionLocation, 1, &light->getPosition()[0]);
     glUniform3fv(lightColorLocation, 1, &light->getColor()[0]);
 }
+
+void Shader::enableTexture() {
+    glUniform1i(textureLocation, 0);
+}
+
+void Shader::enableNormalMap() {
+    glUniform1f(hasNormalMapLocation, 1);
+    glUniform1i(normalMapLocation, 1);
+}
+
 void Shader::attach() {
     glUseProgram(program);
 }

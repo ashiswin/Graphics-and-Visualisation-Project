@@ -7,6 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <object.h>
+#include <texture.h>
 #include <shader.h>
 #include <camera.h>
 #include <light.h>
@@ -15,6 +16,7 @@ Object *objTest;
 Shader *shader;
 Camera *camera;
 Light *light;
+Texture *texture, *normals;
 
 glm::mat4 projectionMatrix;
 
@@ -72,14 +74,12 @@ int main(int argc, char* argv[]) {
     printf("OpenGL version supported %s\n", version);
     
     glEnable(GL_DEPTH_TEST); // enable depth-testing
-    glDepthFunc(GL_LESS);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
+    glDepthFunc(GL_LEQUAL);
+    // glEnable(GL_CULL_FACE);
+    // glCullFace(GL_BACK);
+    // glFrontFace(GL_CCW);
     glClearColor(0, 0, 0, 0);
     glClearDepth(1.0);
-    // glEnable(GL_MULTISAMPLE);
-    // glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
     GLint iMultiSample = 0;
     GLint iNumSamples = 0;
     glGetIntegerv(GL_SAMPLE_BUFFERS, &iMultiSample);
@@ -87,22 +87,26 @@ int main(int argc, char* argv[]) {
     printf("MSAA on, GL_SAMPLE_BUFFERS = %d, GL_SAMPLES = %d\n", iMultiSample, iNumSamples);
 
     projectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 1000.f);
-    // projectionMatrix = glm::mat4(1.0);
 
     shader = new Shader();
     shader->attachShader(GL_VERTEX_SHADER, "shaders/basic_vertex.glsl");
     shader->attachShader(GL_FRAGMENT_SHADER, "shaders/basic_fragment.glsl");
     if(!shader->compile()) printf("Error compiling shader\n");
     
-    light = new Light(glm::vec3(0, 20, 10.0), glm::vec3(1.0, 0.0, 0.0));
+    light = new Light(glm::vec3(0, 20, 10.0), glm::vec3(1.0, 1.0, 1.0));
     
     camera = new Camera();
-    camera->move(0, 0, 5);
+    camera->move(0, 1, 5);
     
+    texture = new Texture();
+    // texture->loadFromFile("assets/textures/panana_tree_diffuse.jpg");
+    texture->loadFromFile("assets/textures/tree.png");
+
     objTest = new Object();
-    objTest->loadFromObj("assets/garg.obj");
+    objTest->loadFromObj("assets/tree.obj");
     objTest->setShader(shader);
-    
+    objTest->setTexture(texture);
+
     glutKeyboardFunc(&keyPressed);
     glutDisplayFunc(update);
 
