@@ -114,6 +114,20 @@ void update() {
     glutSwapBuffers();
 }
 
+void testHeightfield() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    firstPass->attach();
+    firstPass->loadProjectionMatrix(projectionMatrix);
+    firstPass->loadViewMatrix(camera->getViewMatrix());
+
+    water->draw(firstPass);
+
+    firstPass->detach();
+
+    glutSwapBuffers();
+}
+
 int main(int argc, char* argv[]) {
 	glutInit(&argc, argv);
 
@@ -159,7 +173,7 @@ int main(int argc, char* argv[]) {
     fbo = new FBO(800, 600);
 
     glutKeyboardFunc(&keyPressed);
-    glutDisplayFunc(update2);
+    glutDisplayFunc(testHeightfield);
 
     //Start GLUT main loop
 	glutMainLoop();
