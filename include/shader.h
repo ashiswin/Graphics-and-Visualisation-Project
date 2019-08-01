@@ -21,8 +21,9 @@ class Shader {
         void attach();
         void detach();
 
-    private:
         int getUniformLocation(const char* uniformName);
+
+    private:
 
         GLuint program;
 

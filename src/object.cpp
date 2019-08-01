@@ -299,22 +299,25 @@ void Object::setNormalMap(Texture* normals) {
 void Object::draw() {
     shader->loadModelMatrix(transformation);
     shader->loadSpecularComponents(shineDampener, reflectivity);
-
     glBindVertexArray(vaoId);
     glEnableVertexAttribArray(0);
     if(hasTextures) glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
-    if(texture != NULL) {
-        shader->enableTexture();
-        texture->bind(GL_TEXTURE0);
-    }
-    if(hasNormalMap) {
-        shader->enableNormalMap();
-        normalMap->bind(GL_TEXTURE1);
-    }
-    
     GLenum err;
+    while((err = glGetError()) != GL_NO_ERROR)
+    {
+        std::cout << "Error in Object::draw 0: " << err << std::endl;
+    }
+    // if(texture != NULL) {
+    //     shader->enableTexture();
+    //     texture->bind(GL_TEXTURE0);
+    // }
+    // if(hasNormalMap) {
+    //     shader->enableNormalMap();
+    //     normalMap->bind(GL_TEXTURE1);
+    // }
+    
     while((err = glGetError()) != GL_NO_ERROR)
     {
         std::cout << "Error in Object::draw 1: " << err << std::endl;

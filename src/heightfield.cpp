@@ -14,6 +14,7 @@ Heightfield::Heightfield(int width, int height) {
     this->modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-width / 2, 0, 0));
 
     prepareBuffers();
+    prepareShaders();
     generateGeometry();
 }
 
@@ -25,6 +26,20 @@ void Heightfield::prepareBuffers() {
     heightA = new FBO(width, height);
     heightB = new FBO(width, height);
     normals = new FBO(width, height);
+}
+
+void Heightfield::prepareShaders() {
+    addHeightShader = new Shader();
+    std::cout << "Compiling addheight vertex shader..." << std::endl;
+    addHeightShader->attachShader(GL_VERTEX_SHADER, "shaders/addheight_vertex.glsl");
+    std::cout << "Compiling addheight fragment shader..." << std::endl;
+    addHeightShader->attachShader(GL_FRAGMENT_SHADER, "shaders/addheight_fragment.glsl");
+    if(!addHeightShader->compile()) std::cout << "Failed to compile addheight shader!" << std::endl;
+
+    widthLocation = addHeightShader->getUniformLocation("width");
+    heightLocation = addHeightShader->getUniformLocation("height");
+    locationLocation = addHeightShader->getUniformLocation("location");
+    amountLocation = addHeightShader->getUniformLocation("amount");
 }
 
 void Heightfield::generateGeometry() {
@@ -82,13 +97,71 @@ void Heightfield::generateGeometry() {
 
 void Heightfield::draw(Shader *shader) {
     shader->loadModelMatrix(modelMatrix);
+    shader->enableTexture();
+
+    heightA->bindColorTexture(GL_TEXTURE0);
 
     glBindVertexArray(vaoId);
     glEnableVertexAttribArray(0);
+    
+    glDrawElements(GL_TRIANGLES, this->nIndices, GL_UNSIGNED_INT, 0);
+    GLenum err;
+    while((err = glGetError()) != GL_NO_ERROR)
+    {
+        std::cout << "Error in Object::draw 0: " << err << std::endl;
+    }
+    glDisableVertexAttribArray(0);
+    glBindVertexArray(0);
 
+    heightA->unbindColorTexture();
+}
+
+void Heightfield::addHeight(float amount, glm::vec2 location) {
+    addHeightShader->attach();
+    addHeightShader->enableTexture();
+    
+    glUniform1f(widthLocation, this->width);
+    glUniform1f(heightLocation, this->height);
+    
+    GLenum err;
+    while((err = glGetError()) != GL_NO_ERROR)
+    {
+        std::cout << "Error in Object::addHeight 0: " << err << std::endl;
+    }
+
+    glm::vec2 texLocation(location.x / this->width, location.y / this->height);
+    std::cout << "Adding " << amount << " at " << texLocation[0] << "," << texLocation[1] << std::endl;
+    
+    glUniform2fv(locationLocation, 1, &texLocation[0]);
+    glUniform1f(amountLocation, amount);
+
+    while((err = glGetError()) != GL_NO_ERROR)
+    {
+        std::cout << "Error in Object::addHeight 1: " << err << std::endl;
+    }
+    heightB->bind(); // render to height B
+    heightA->bindColorTexture(GL_TEXTURE0);
+
+    glBindVertexArray(vaoId);
+    glEnableVertexAttribArray(0);
     
     glDrawElements(GL_TRIANGLES, this->nIndices, GL_UNSIGNED_INT, 0);
 
+    while((err = glGetError()) != GL_NO_ERROR)
+    {
+        std::cout << "Error in Object::addHeight 2: " << err << std::endl;
+    }
+
     glDisableVertexAttribArray(0);
     glBindVertexArray(0);
+
+    heightA->unbindColorTexture();
+    heightB->unbind();
+
+    addHeightShader->detach();
+
+    // Swap buffers around
+    FBO* temp = heightA;
+    heightA = heightB;
+    heightB = temp;
 }

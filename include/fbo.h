@@ -6,8 +6,6 @@
 class FBO {
     public:
         FBO(int w, int h);
-        void enableColor(); // create a texture for the color attachment and attach it to FBO
-        void enableDepth(); // create a texture for the depth attachment and attach it to FBO
         void bind(); // bind FBO for rendering
         void unbind(); // unbind FBO
         void bindColorTexture(GLenum target); // Bind color texture to target texture location

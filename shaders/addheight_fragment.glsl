@@ -4,7 +4,7 @@ in vec2 pass_texCoords;
 
 out vec4 frag_colour;
 
-uniform int amount;
+uniform float amount;
 uniform vec2 location;
 uniform sampler2D textureSampler;
 uniform float width;
@@ -34,10 +34,11 @@ void main() {
 
         // taking average
         averageHt = averageHt/8;
-        texel = texture(textureSampler, vec2(pass_texCoords.x, -pass_texCoords.y) + vec4(amount, curr_height - averageHt, 0, 0));
+        texel = texture(textureSampler, vec2(pass_texCoords.x, -pass_texCoords.y)) + vec4(amount, curr_height - averageHt, 0, 0);
     }
-    else
-        texel = texture(textureSampler, vec2(pass_texCoords.x, -pass_texCoords.y));
+    else {
+        texel = vec4(1.0, 0.0, 1.0, 1.0);//texture(textureSampler, vec2(pass_texCoords.x, -pass_texCoords.y));
+    }
 
     frag_colour = texel;
 }

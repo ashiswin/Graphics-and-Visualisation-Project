@@ -14,12 +14,17 @@
 #include <fbo.h>
 #include <heightfield.h>
 
+#define WIDTH 800
+#define HEIGHT 600
+
 // Shader *shader;
 // Shader *simple, *simple_tex;
 
 Shader *firstPass;
 Shader *secondPass;
+Shader *waterShader;
 
+GLuint widthLocation, heightLocation;
 Object *quad;
 
 Camera *camera;
@@ -71,13 +76,16 @@ void keyPressed(unsigned char c, int x, int y) {
         case 's':
             camera->move(0, 0, 1);
             break;
+        case 'v':
+            water->addHeight(1.0, glm::vec2(1.0f, 1.0f));
+            break;
     }
     
     glutPostRedisplay();
 }
 void update() {
     // Begin first pass of rendering (render to FBO)
-    // fbo->enableColor();
+    std::cout << "Begin first pass" << std::endl;
     // TODO: Bind FBO for drawing
     fbo->bind();
 
@@ -94,7 +102,9 @@ void update() {
 
     // TODO: Unbind FBO
     fbo->unbind();
+
     // Begin second pass of rendering (render to screen)
+    std::cout << "Begin second pass" << std::endl;
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     secondPass->attach();
@@ -117,13 +127,15 @@ void update() {
 void testHeightfield() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    firstPass->attach();
-    firstPass->loadProjectionMatrix(projectionMatrix);
-    firstPass->loadViewMatrix(camera->getViewMatrix());
+    waterShader->attach();
+    waterShader->loadProjectionMatrix(projectionMatrix);
+    waterShader->loadViewMatrix(camera->getViewMatrix());
+    glUniform1f(widthLocation, WIDTH);
+    glUniform1f(heightLocation, HEIGHT);
 
-    water->draw(firstPass);
+    water->draw(waterShader);
 
-    firstPass->detach();
+    waterShader->detach();
 
     glutSwapBuffers();
 }
@@ -155,6 +167,16 @@ int main(int argc, char* argv[]) {
     projectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 1000.0f);
 
     water = new Heightfield(16, 16);
+
+    waterShader = new Shader();
+    std::cout << "Compiling water vertex shader..." << std::endl;
+    waterShader->attachShader(GL_VERTEX_SHADER, "shaders/water_vertex.glsl");
+    std::cout << "Compiling water fragment shader..." << std::endl;
+    waterShader->attachShader(GL_FRAGMENT_SHADER, "shaders/water_fragment.glsl");
+    if(!waterShader->compile()) std::cout << "Error compiling water shader!" << std::endl;
+
+    widthLocation = waterShader->getUniformLocation("width");
+    heightLocation = waterShader->getUniformLocation("height");
 
     // Objects for testing FBO
     firstPass = new Shader();
