@@ -22,8 +22,9 @@ Shader *secondPass;
 Object *quad;
 
 Camera *camera;
-Light *light;
-Texture *texture, *normals;
+// Light *light;
+// Texture *texture, *normals;
+
 FBO *fbo;
 
 glm::mat4 projectionMatrix;
@@ -42,7 +43,7 @@ float texcoords[] = {
     0, 1
 };
 
-float vnormals[] = {
+float normals[] = {
     0, 0, 1,
     0, 0, 1,
     0, 0, 1,
@@ -137,7 +138,7 @@ int main(int argc, char* argv[]) {
     camera = new Camera();
     camera->move(0, 0, 5);
 
-    projectionMatrix = glm::perspective(glm::radians(45.0), 4.0 / 3.0, 0.1f, 1000.0f);
+    projectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 1000.0f);
 
     // Objects for testing FBO
     firstPass = new Shader();
@@ -151,7 +152,9 @@ int main(int argc, char* argv[]) {
     if(!secondPass->compile()) std::cout << "Error compiling second pass shader!" << std::endl;
 
     quad = new Object();
-    quad->loadVertices(vertices, texCoords, normals, indices, 4, 6);
+    quad->loadVertices(vertices, texcoords, normals, indices, 4, 6);
+
+    fbo = new FBO(800, 600);
 
     glutKeyboardFunc(&keyPressed);
     glutDisplayFunc(update);
