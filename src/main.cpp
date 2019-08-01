@@ -12,6 +12,7 @@
 #include <camera.h>
 #include <light.h>
 #include <fbo.h>
+#include <heightfield.h>
 
 // Shader *shader;
 // Shader *simple, *simple_tex;
@@ -26,6 +27,7 @@ Camera *camera;
 // Texture *texture, *normals;
 
 FBO *fbo;
+Heightfield *water;
 
 glm::mat4 projectionMatrix;
 
@@ -56,23 +58,20 @@ int indices[] = {
 };
 
 void keyPressed(unsigned char c, int x, int y) {
-    // switch(c) {
-    //     case 'w':
-    //         camera->move(0, 0, -0.02f);
-    //         break;
-    //     case 'd':
-    //         camera->move(0.02f, 0, 0);
-    //         break;
-    //     case 'a':
-    //         camera->move(-0.02f, 0, 0);
-    //         break;
-    //     case 's':
-    //         camera->move(0, 0, 0.02f);
-    //         break;
-    //     case 'v':
-    //         square->spin();
-    //         break;
-    // }
+    switch(c) {
+        case 'w':
+            camera->move(0, 0, -1);
+            break;
+        case 'd':
+            camera->move(1, 0, 0);
+            break;
+        case 'a':
+            camera->move(-1, 0, 0);
+            break;
+        case 's':
+            camera->move(0, 0, 1);
+            break;
+    }
     
     glutPostRedisplay();
 }
@@ -115,6 +114,20 @@ void update() {
     glutSwapBuffers();
 }
 
+void testHeightfield() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    firstPass->attach();
+    firstPass->loadProjectionMatrix(projectionMatrix);
+    firstPass->loadViewMatrix(camera->getViewMatrix());
+
+    water->draw(firstPass);
+
+    firstPass->detach();
+
+    glutSwapBuffers();
+}
+
 int main(int argc, char* argv[]) {
 	glutInit(&argc, argv);
 
@@ -137,9 +150,11 @@ int main(int argc, char* argv[]) {
     glClearDepth(1.0);
     
     camera = new Camera();
-    camera->move(0, 0, 5);
+    camera->move(0, 1, 5);
 
     projectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 1000.0f);
+
+    water = new Heightfield(16, 16);
 
     // Objects for testing FBO
     firstPass = new Shader();
@@ -158,7 +173,7 @@ int main(int argc, char* argv[]) {
     fbo = new FBO(800, 600);
 
     glutKeyboardFunc(&keyPressed);
-    glutDisplayFunc(update);
+    glutDisplayFunc(testHeightfield);
 
     //Start GLUT main loop
 	glutMainLoop();
