@@ -49,6 +49,45 @@ void Object::loadVertices(float* vertices, int* indices, int nVertices, int nInd
     this->nIndices = nIndices;
 }
 
+void Object::loadVertices(float* vertices, float* texcoords, float* normals, int* indices, int nVertices, int nIndices) {
+    glGenBuffers(1, &verticesVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, this->verticesVBO);
+    glBufferData(GL_ARRAY_BUFFER, nVertices * 3 * sizeof(float), vertices, GL_STATIC_DRAW);
+
+    glGenBuffers(1, &texcoordsVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, this->texcoordsVBO);
+    glBufferData(GL_ARRAY_BUFFER, nVertices * 2 * sizeof(float), texcoords, GL_STATIC_DRAW);
+
+    glGenBuffers(1, &normalsVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, this->normalsVBO);
+    glBufferData(GL_ARRAY_BUFFER, nVertices * 3 * sizeof(float), normals, GL_STATIC_DRAW);
+
+    glBindVertexArray(vaoId);
+
+    glGenBuffers(1, &indicesVBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesVBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, nIndices * sizeof(int), indices, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, this->verticesVBO);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    glEnableVertexAttribArray(1);
+    glBindBuffer(GL_ARRAY_BUFFER, this->texcoordsVBO);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+    glEnableVertexAttribArray(2);
+    glBindBuffer(GL_ARRAY_BUFFER, this->normalsVBO);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    this->nIndices = nIndices;
+    this->nVertices = nVertices;
+    hasTextures = true;
+}
+
 void Object::loadFromObj(char* filename) {
     std::vector<glm::vec3> vecv;
     std::vector<glm::vec2> vect;
@@ -274,13 +313,12 @@ void Object::draw() {
         shader->enableNormalMap();
         normalMap->bind(GL_TEXTURE1);
     }
-
+    
     GLenum err;
     while((err = glGetError()) != GL_NO_ERROR)
     {
         std::cout << "Error in Object::draw 1: " << err << std::endl;
     }
-
 
     glDrawElements(GL_TRIANGLES, nIndices, GL_UNSIGNED_INT, 0);
 

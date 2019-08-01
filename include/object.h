@@ -11,6 +11,7 @@ class Object {
     public:
         Object();
         void loadVertices(float* vertices, int* indices, int nVertices, int nIndices);
+        void loadVertices(float* vertices, float* texcoords, float* normals, int* indices, int nVertices, int nIndices);
         void loadFromObj(char* filename);
         void setShader(Shader* shader);
         Shader* getShader();
