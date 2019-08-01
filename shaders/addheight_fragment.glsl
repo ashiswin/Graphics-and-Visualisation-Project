@@ -14,7 +14,7 @@ void main() {
     float deltaX = 1 / width;
     float deltaY = 1 / height;
 
-    vec4 texel;
+    // vec4 texel;
     if (pass_texCoords.x == location.x && pass_texCoords.y == location.y) {
 
         float x = pass_texCoords.x;
@@ -34,10 +34,10 @@ void main() {
 
         // taking average
         averageHt = averageHt/8;
-        texel = texture(textureSampler, vec2(pass_texCoords.x, -pass_texCoords.y)) + vec4(amount, curr_height - averageHt, 0, 0);
+        frag_colour = texture(textureSampler, vec2(pass_texCoords.x, -pass_texCoords.y)) + vec4(amount, curr_height - averageHt, 0, 0);
     }
     else {
-        texel = vec4(1.0, 0.0, 1.0, 1.0);//texture(textureSampler, vec2(pass_texCoords.x, -pass_texCoords.y));
+        frag_colour = vec4(pass_texCoords, 1.0, 1.0); // texture(textureSampler, vec2(pass_texCoords.x, -pass_texCoords.y));
     }
 
     frag_colour = texel;

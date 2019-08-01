@@ -20,6 +20,6 @@ void main() {
     vec4 texel = texture(textureSampler, texCoords);
     pass_texel = texel;
 
-    vec4 worldPosition = modelMatrix * vec4(position.x, position.y + texel.r, position.z, 1.0);
+    vec4 worldPosition = modelMatrix * vec4(position.x, position.y, position.z, 1.0);
     gl_Position = projectionMatrix * viewMatrix * worldPosition;
 }
