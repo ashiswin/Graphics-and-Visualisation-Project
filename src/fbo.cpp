@@ -8,6 +8,9 @@ FBO::FBO(int w, int h) {
 
     width = w;
     height = h;
+
+    enableColor(); 
+    // enableDepth();
 }
 
 void FBO::enableColor() {
@@ -15,7 +18,7 @@ void FBO::enableColor() {
 
     glGenTextures(1, &colorTextureID);
     glBindTexture(GL_TEXTURE_2D, colorTextureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -58,6 +61,15 @@ void FBO::bindColorTexture(GLenum target) {
     glBindTexture(GL_TEXTURE_2D, colorTextureID);
 
 }
+
+void FBO::unbindColorTexture() {
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void FBO::unbindDepthTexture() {
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 
 void FBO::bindDepthTexture(GLenum target) {
 

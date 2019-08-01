@@ -78,8 +78,9 @@ void keyPressed(unsigned char c, int x, int y) {
 }
 void update() {
     // Begin first pass of rendering (render to FBO)
-
+    // fbo->enableColor();
     // TODO: Bind FBO for drawing
+    fbo->bind();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -93,7 +94,7 @@ void update() {
     firstPass->detach();
 
     // TODO: Unbind FBO
-
+    fbo->unbind();
     // Begin second pass of rendering (render to screen)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -103,12 +104,12 @@ void update() {
     secondPass->enableTexture();
 
     // TODO: Bind FBO color texture to GL_TEXTURE0
-
+    fbo->bindColorTexture(GL_TEXTURE0);
     quad->setShader(secondPass);
     quad->draw();
 
     // TODO: Unbind FBO color texture
-
+    fbo->unbindColorTexture();
     secondPass->detach();
 
     glutSwapBuffers();
