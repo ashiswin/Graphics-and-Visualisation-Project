@@ -13,8 +13,13 @@
 #include <light.h>
 #include <fbo.h>
 
-Shader *shader;
-Shader *simple, *simple_tex;
+// Shader *shader;
+// Shader *simple, *simple_tex;
+
+Shader *firstPass;
+Shader *secondPass;
+
+Object *quad;
 
 Camera *camera;
 Light *light;
@@ -50,28 +55,61 @@ int indices[] = {
 };
 
 void keyPressed(unsigned char c, int x, int y) {
-    switch(c) {
-        case 'w':
-            camera->move(0, 0, -0.02f);
-            break;
-        case 'd':
-            camera->move(0.02f, 0, 0);
-            break;
-        case 'a':
-            camera->move(-0.02f, 0, 0);
-            break;
-        case 's':
-            camera->move(0, 0, 0.02f);
-            break;
-        case 'v':
-            square->spin();
-            break;
-    }
+    // switch(c) {
+    //     case 'w':
+    //         camera->move(0, 0, -0.02f);
+    //         break;
+    //     case 'd':
+    //         camera->move(0.02f, 0, 0);
+    //         break;
+    //     case 'a':
+    //         camera->move(-0.02f, 0, 0);
+    //         break;
+    //     case 's':
+    //         camera->move(0, 0, 0.02f);
+    //         break;
+    //     case 'v':
+    //         square->spin();
+    //         break;
+    // }
     
     glutPostRedisplay();
 }
 void update() {
+    // Begin first pass of rendering (render to FBO)
+
+    // TODO: Bind FBO for drawing
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    firstPass->attach();
+    firstPass->loadProjectionMatrix(projectionMatrix);
+    firstPass->loadViewMatrix(camera->getViewMatrix());
+
+    quad->setShader(firstPass);
+    quad->draw();
+
+    firstPass->detach();
+
+    // TODO: Unbind FBO
+
+    // Begin second pass of rendering (render to screen)
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    secondPass->attach();
+    secondPass->loadProjectionMatrix(projectionMatrix);
+    secondPass->loadViewMatrix(camera->getViewMatrix());
+    secondPass->enableTexture();
+
+    // TODO: Bind FBO color texture to GL_TEXTURE0
+
+    quad->setShader(secondPass);
+    quad->draw();
+
+    // TODO: Unbind FBO color texture
+
+    secondPass->detach();
+
     glutSwapBuffers();
 }
 
@@ -96,6 +134,24 @@ int main(int argc, char* argv[]) {
     glClearColor(0, 0, 0, 0);
     glClearDepth(1.0);
     
+    camera = new Camera();
+    camera->move(0, 0, 5);
+
+    projectionMatrix = glm::perspective(glm::radians(45.0), 4.0 / 3.0, 0.1f, 1000.0f);
+
+    // Objects for testing FBO
+    firstPass = new Shader();
+    firstPass->attachShader(GL_VERTEX_SHADER, "shaders/simple_vertex.glsl");
+    firstPass->attachShader(GL_FRAGMENT_SHADER, "shaders/simple_fragment.glsl");
+    if(!firstPass->compile()) std::cout << "Error compiling first pass shader!" << std::endl;
+
+    secondPass = new Shader();
+    secondPass->attachShader(GL_VERTEX_SHADER, "shaders/simple_vertex.glsl");
+    secondPass->attachShader(GL_FRAGMENT_SHADER, "shaders/simple_textured_fragment.glsl");
+    if(!secondPass->compile()) std::cout << "Error compiling second pass shader!" << std::endl;
+
+    quad = new Object();
+    quad->loadVertices(vertices, texCoords, normals, indices, 4, 6);
 
     glutKeyboardFunc(&keyPressed);
     glutDisplayFunc(update);
