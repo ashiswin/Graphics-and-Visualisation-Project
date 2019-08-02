@@ -14,12 +14,11 @@ uniform float height;
 uniform sampler2D textureSampler;
 
 void main() {
-    vec2 texCoords = vec2(position.x / width, position.z / height);
-    texCoords.y = -texCoords.y;
+    vec2 texCoords = vec2(position.x / width, -position.z / height);
 
     vec4 texel = texture(textureSampler, texCoords);
     pass_texel = texel;
 
-    vec4 worldPosition = modelMatrix * vec4(position.x, position.y, position.z, 1.0);
+    vec4 worldPosition = modelMatrix * vec4(position.x, position.y + texel.r, position.z, 1.0);
     gl_Position = projectionMatrix * viewMatrix * worldPosition;
 }

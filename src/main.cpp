@@ -3,6 +3,7 @@
 #include <GLUT/glut.h>
 #include <stdio.h>
 #include <iostream>
+#include <time.h>
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -14,8 +15,8 @@
 #include <fbo.h>
 #include <heightfield.h>
 
-#define WIDTH 800
-#define HEIGHT 600
+#define WIDTH 256
+#define HEIGHT 256
 
 // Shader *shader;
 // Shader *simple, *simple_tex;
@@ -28,7 +29,7 @@ GLuint widthLocation, heightLocation;
 Object *quad;
 
 Camera *camera;
-// Light *light;
+Light *light;
 // Texture *texture, *normals;
 
 FBO *fbo;
@@ -77,12 +78,17 @@ void keyPressed(unsigned char c, int x, int y) {
             camera->move(0, 0, 1);
             break;
         case 'v':
-            water->addHeight(1.0, glm::vec2(0, 0));
+            // water->addHeight(10.0, glm::vec2(WIDTH / 2, HEIGHT / 2));
+            water->addHeight(10 + rand() % 20, glm::vec2(rand() % WIDTH, rand() % HEIGHT));
+            break;
+        case 'c':
+            water->stepSimulation();
             break;
     }
     
     glutPostRedisplay();
 }
+
 void update() {
     // Begin first pass of rendering (render to FBO)
     std::cout << "Begin first pass" << std::endl;
@@ -140,7 +146,15 @@ void testHeightfield() {
     glutSwapBuffers();
 }
 
+void timer(int value) {
+    water->stepSimulation();
+    glutPostRedisplay();
+    glutTimerFunc(1000 / 60, timer, 0);
+}
+
 int main(int argc, char* argv[]) {
+    srand(time(NULL));
+
 	glutInit(&argc, argv);
 
     glutInitDisplayMode(GLUT_3_2_CORE_PROFILE | GLUT_DOUBLE | GLUT_DEPTH | GLUT_MULTISAMPLE);
@@ -162,11 +176,13 @@ int main(int argc, char* argv[]) {
     glClearDepth(1.0);
     
     camera = new Camera();
-    camera->move(0, 1, 5);
+    camera->move(0, 2, 5);
 
+    light = new Light(glm::vec3(1, 1, 1), glm::(1.0, 1.0, 1.0));
+    
     projectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 1000.0f);
 
-    water = new Heightfield(16, 16);
+    water = new Heightfield(WIDTH, HEIGHT);
 
     waterShader = new Shader();
     std::cout << "Compiling water vertex shader..." << std::endl;
@@ -196,6 +212,7 @@ int main(int argc, char* argv[]) {
 
     glutKeyboardFunc(&keyPressed);
     glutDisplayFunc(testHeightfield);
+    glutTimerFunc(1000 / 60, timer, 0);
 
     //Start GLUT main loop
 	glutMainLoop();

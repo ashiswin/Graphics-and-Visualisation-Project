@@ -38,11 +38,14 @@ int qindices[] = {
 Heightfield::Heightfield(int width, int height) {
     this->width = width;
     this->height = height;
-    this->modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-width / 2, 0, 0));
+    this->modelMatrix = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(0.1, 0.1, 0.1)), glm::vec3(-width / 2, 0, 0));
 
     prepareBuffers();
     prepareShaders();
     generateGeometry();
+
+    o = new Object();
+    o->loadVertices(qvertices, qtexcoords, qnormals, qindices, 4, 6);
 }
 
 void Heightfield::prepareBuffers() {
@@ -63,10 +66,20 @@ void Heightfield::prepareShaders() {
     addHeightShader->attachShader(GL_FRAGMENT_SHADER, "shaders/addheight_fragment.glsl");
     if(!addHeightShader->compile()) std::cout << "Failed to compile addheight shader!" << std::endl;
 
-    widthLocation = addHeightShader->getUniformLocation("width");
-    heightLocation = addHeightShader->getUniformLocation("height");
-    locationLocation = addHeightShader->getUniformLocation("location");
-    amountLocation = addHeightShader->getUniformLocation("amount");
+    addHeightWidthLocation = addHeightShader->getUniformLocation("width");
+    addHeightHeightLocation = addHeightShader->getUniformLocation("height");
+    addHeightLocationLocation = addHeightShader->getUniformLocation("location");
+    addHeightAmountLocation = addHeightShader->getUniformLocation("amount");
+
+    stepSimulationShader = new Shader();
+    std::cout << "Compiling stepsimulation vertex shader..." << std::endl;
+    stepSimulationShader->attachShader(GL_VERTEX_SHADER, "shaders/stepsimulation_vertex.glsl");
+    std::cout << "Compiling stepsimulation fragment shader..." << std::endl;
+    stepSimulationShader->attachShader(GL_FRAGMENT_SHADER, "shaders/stepsimulation_fragment.glsl");
+    if(!stepSimulationShader->compile()) std::cout << "Failed to compile stepsimulation shader!" << std::endl;
+
+    stepSimulationWidthLocation = stepSimulationShader->getUniformLocation("width");
+    stepSimulationHeightLocation = stepSimulationShader->getUniformLocation("height");
 }
 
 void Heightfield::generateGeometry() {
@@ -122,11 +135,23 @@ void Heightfield::generateGeometry() {
 }
 
 void Heightfield::draw(Shader *shader) {
-    std::cout << "Drawing water" << std::endl;
+    // std::cout << "Drawing water" << std::endl;
     shader->loadModelMatrix(modelMatrix);
     shader->enableTexture();
 
     heightA->bindColorTexture(GL_TEXTURE0);
+    // float pixels[width * height * 3];
+    // glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, pixels);
+    // for(int i = 0; i < height; i++) {
+    //     for(int j = 0; j < width; j++) {
+    //         std::cout << "(";
+    //         for(int k = 0; k < 3; k++) {
+    //             std::cout << pixels[(i * (width * 3)) + (j * 3) + k] << ",";
+    //         }
+    //         std::cout << ") ";
+    //     }
+    //     std::cout << std::endl;
+    // }
 
     glBindVertexArray(vaoId);
     glEnableVertexAttribArray(0);
@@ -146,56 +171,78 @@ void Heightfield::draw(Shader *shader) {
 void Heightfield::addHeight(float amount, glm::vec2 location) {
     addHeightShader->attach();
     addHeightShader->enableTexture();
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
-    // glUniform1f(widthLocation, this->width);
-    // glUniform1f(heightLocation, this->height);
-    
-    Object *o = new Object();
-    o->loadVertices(qvertices, qtexcoords, qnormals, qindices, 4, 6);
 
-    GLenum err;
-    while((err = glGetError()) != GL_NO_ERROR)
-    {
-        std::cout << "Error in Object::addHeight 0: " << err << std::endl;
-    }
+    // Object *o = new Object();
+    // o->loadVertices(qvertices, qtexcoords, qnormals, qindices, 4, 6);
 
-    glm::vec2 texLocation(location.x / this->width, location.y / this->height);
-    std::cout << "Adding " << amount << " at " << texLocation[0] << "," << texLocation[1] << std::endl;
-
-    glUniform2fv(locationLocation, 1, &texLocation[0]);
-    glUniform1f(amountLocation, amount);
-
-    while((err = glGetError()) != GL_NO_ERROR)
-    {
-        std::cout << "Error in Object::addHeight 1: " << err << std::endl;
-    }
+    glUniform2fv(addHeightLocationLocation, 1, &location[0]);
+    glUniform1f(addHeightAmountLocation, amount);
+    glUniform1f(addHeightWidthLocation, width);
+    glUniform1f(addHeightHeightLocation, height);
 
     heightB->bind(); // render to height B
     heightA->bindColorTexture(GL_TEXTURE0);
-    
-    // glBindVertexArray(vaoId);
-    // glEnableVertexAttribArray(0);
-    
-    // glDrawElements(GL_TRIANGLES, this->nIndices, GL_UNSIGNED_INT, 0);
-
-    while((err = glGetError()) != GL_NO_ERROR)
-    {
-        std::cout << "Error in Object::addHeight 2: " << err << std::endl;
-    }
-
-    // glDisableVertexAttribArray(0);
-    // glBindVertexArray(0);
-
 
     o->setShader(addHeightShader);
     o->draw();
     
+    // float pixels[16 * 16 * 3];
+    // glReadPixels(0, 0, 16, 16, GL_RGB, GL_FLOAT, pixels);
+    // for(int i = 0; i < 16; i++) {
+    //     for(int j = 0; j < 16; j++) {
+    //         std::cout << "(";
+    //         for(int k = 0; k < 3; k++) {
+    //             std::cout << pixels[(i * (16 * 3)) + (j * 3) + k] << ",";
+    //         }
+    //         std::cout << ") ";
+    //     }
+    //     std::cout << std::endl;
+    // }
 
     heightA->unbindColorTexture();
     heightB->unbind();
 
     addHeightShader->detach();
+
+    // Swap buffers around
+    FBO* temp = heightA;
+    heightA = heightB;
+    heightB = temp;
+}
+
+void Heightfield::stepSimulation() {
+    stepSimulationShader->attach();
+    stepSimulationShader->enableTexture();
+
+    // Object *o = new Object();
+    // o->loadVertices(qvertices, qtexcoords, qnormals, qindices, 4, 6);
+    
+    glUniform1f(stepSimulationWidthLocation, width);
+    glUniform1f(stepSimulationHeightLocation, height);
+
+    heightB->bind(); // render to height B
+    heightA->bindColorTexture(GL_TEXTURE0);
+
+    o->setShader(stepSimulationShader);
+    o->draw();
+    
+    // float pixels[16 * 16 * 3];
+    // glReadPixels(0, 0, 16, 16, GL_RGB, GL_FLOAT, pixels);
+    // for(int i = 0; i < 16; i++) {
+    //     for(int j = 0; j < 16; j++) {
+    //         std::cout << "(";
+    //         for(int k = 0; k < 3; k++) {
+    //             std::cout << pixels[(i * (16 * 3)) + (j * 3) + k] << ",";
+    //         }
+    //         std::cout << ") ";
+    //     }
+    //     std::cout << std::endl;
+    // }
+
+    heightA->unbindColorTexture();
+    heightB->unbind();
+
+    stepSimulationShader->detach();
 
     // Swap buffers around
     FBO* temp = heightA;

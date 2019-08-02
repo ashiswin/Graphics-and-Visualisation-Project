@@ -6,6 +6,7 @@
 
 class FBO;
 class Shader;
+class Object;
 
 class Heightfield {
     public:
@@ -13,7 +14,8 @@ class Heightfield {
         void draw(Shader* shader);
         void addHeight(float amount, glm::vec2 location);
         void stepSimulation();
-
+        void calculateNormals();
+        
     private:
         FBO *heightA; // for reading height data
         FBO *heightB; // for writing height data
@@ -22,6 +24,8 @@ class Heightfield {
         Shader *addHeightShader;
         Shader *normalCalculationShader;
         Shader *stepSimulationShader;
+
+        Object* o;
 
         GLuint vaoId;
         GLuint verticesVBO;
@@ -33,14 +37,14 @@ class Heightfield {
         int nIndices;
 
         glm::mat4 modelMatrix;
-
         
-        GLuint program;
+        GLuint addHeightWidthLocation;
+        GLuint addHeightHeightLocation;
+        GLuint addHeightLocationLocation;
+        GLuint addHeightAmountLocation;
 
-        GLuint widthLocation;
-        GLuint heightLocation;
-        GLuint locationLocation;
-        GLuint amountLocation;
+        GLuint stepSimulationWidthLocation;
+        GLuint stepSimulationHeightLocation;
         
         void generateGeometry();
         void prepareBuffers();

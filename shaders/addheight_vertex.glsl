@@ -15,10 +15,8 @@ uniform float height;
 
 void main() {
     gl_Position = vec4(position, 1.0);
-
-    // pass_texCoords.x = position.x / width;
-    // pass_texCoords.y = position.z / height;
-    pass_texCoords = texCoords;
-    pass_position = position.xz;
     
+    pass_texCoords = texCoords;
+    pass_position = position.xy;
+
 }
