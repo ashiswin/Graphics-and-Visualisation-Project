@@ -28,7 +28,7 @@ void Object::spin() {
     transformation = glm::rotate(glm::mat4(1.0f), glm::radians(yaw), glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
-void Object::loadVertices(float* vertices, int* indices, int nVertices, int nIndices) {
+void Object::loadVertices(float* vertices, unsigned int* indices, int nVertices, int nIndices) {
     glGenBuffers(1, &verticesVBO);
     glBindBuffer(GL_ARRAY_BUFFER, this->verticesVBO);
     glBufferData(GL_ARRAY_BUFFER, nVertices * 3 * sizeof(float), vertices, GL_STATIC_DRAW);

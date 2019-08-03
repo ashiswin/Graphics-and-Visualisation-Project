@@ -14,6 +14,7 @@
 #include <light.h>
 #include <fbo.h>
 #include <heightfield.h>
+#include <lightmesh.h>
 
 #define WIDTH 256
 #define HEIGHT 256
@@ -34,6 +35,7 @@ DirectionalLight *light;
 
 FBO *fbo;
 Heightfield *water;
+LightMesh *lightMesh;
 
 glm::mat4 projectionMatrix;
 
@@ -188,7 +190,8 @@ int main(int argc, char* argv[]) {
     projectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 1000.0f);
 
     water = new Heightfield(WIDTH, HEIGHT);
-
+    lightMesh = new LightMesh(200);
+    
     waterShader = new Shader();
     std::cout << "Compiling water vertex shader..." << std::endl;
     waterShader->attachShader(GL_VERTEX_SHADER, "shaders/water_vertex.glsl");
