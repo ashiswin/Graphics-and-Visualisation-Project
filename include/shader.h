@@ -4,7 +4,7 @@
 #include <OpenGL/gl3.h>
 #include <glm/mat4x4.hpp>
 
-class Light;
+class DirectionalLight;
 class Shader {
     public:
         Shader();
@@ -15,7 +15,7 @@ class Shader {
         void loadProjectionMatrix(glm::mat4 matrix);
         void loadViewMatrix(glm::mat4 matrix);
         void loadSpecularComponents(float shineDamper, float reflectivity);
-        void loadLight(Light *light);
+        void loadLight(DirectionalLight *light);
         void enableTexture();
         void enableNormalMap();
         void attach();
@@ -31,7 +31,7 @@ class Shader {
         int projectionMatrixLocation;
         int viewMatrixLocation;
 
-        int lightPositionLocation;
+        int lightDirectionLocation;
         int lightColorLocation;
         int shineDamperLocation;
         int reflectivityLocation;

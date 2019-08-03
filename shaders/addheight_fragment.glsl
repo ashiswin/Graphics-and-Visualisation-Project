@@ -1,8 +1,5 @@
 #version 400
 
-in vec2 pass_texCoords;
-in vec2 pass_position;
-
 out vec4 frag_colour;
 
 const float PI = 3.141592653589793;

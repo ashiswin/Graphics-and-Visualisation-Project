@@ -80,6 +80,16 @@ void Heightfield::prepareShaders() {
 
     stepSimulationWidthLocation = stepSimulationShader->getUniformLocation("width");
     stepSimulationHeightLocation = stepSimulationShader->getUniformLocation("height");
+
+    normalCalculationShader = new Shader();
+    std::cout << "Compiling calculatenormals vertex shader..." << std::endl;
+    normalCalculationShader->attachShader(GL_VERTEX_SHADER, "shaders/calculatenormals_vertex.glsl");
+    std::cout << "Compiling calculatenormals fragment shader..." << std::endl;
+    normalCalculationShader->attachShader(GL_FRAGMENT_SHADER, "shaders/calculatenormals_fragment.glsl");
+    if(!normalCalculationShader->compile()) std::cout << "Failed to compile calculatenormals shader!" << std::endl;
+
+    normalCalculationWidthLocation = normalCalculationShader->getUniformLocation("width");
+    normalCalculationHeightLocation = normalCalculationShader->getUniformLocation("height");
 }
 
 void Heightfield::generateGeometry() {
@@ -152,6 +162,7 @@ void Heightfield::draw(Shader *shader) {
     //     }
     //     std::cout << std::endl;
     // }
+    // std::cout << std::endl;
 
     glBindVertexArray(vaoId);
     glEnableVertexAttribArray(0);
@@ -204,10 +215,7 @@ void Heightfield::addHeight(float amount, glm::vec2 location) {
 
     addHeightShader->detach();
 
-    // Swap buffers around
-    FBO* temp = heightA;
-    heightA = heightB;
-    heightB = temp;
+    swapBuffers();
 }
 
 void Heightfield::stepSimulation() {
@@ -244,6 +252,47 @@ void Heightfield::stepSimulation() {
 
     stepSimulationShader->detach();
 
+    swapBuffers();
+}
+
+void Heightfield::calculateNormals() {
+    normalCalculationShader->attach();
+    normalCalculationShader->enableTexture();
+
+    // Object *o = new Object();
+    // o->loadVertices(qvertices, qtexcoords, qnormals, qindices, 4, 6);
+    
+    glUniform1f(normalCalculationWidthLocation, width);
+    glUniform1f(normalCalculationHeightLocation, height);
+
+    heightB->bind(); // render to height B
+    heightA->bindColorTexture(GL_TEXTURE0);
+
+    o->setShader(normalCalculationShader);
+    o->draw();
+    
+    // float pixels[16 * 16 * 3];
+    // glReadPixels(0, 0, 16, 16, GL_RGB, GL_FLOAT, pixels);
+    // for(int i = 0; i < 16; i++) {
+    //     for(int j = 0; j < 16; j++) {
+    //         std::cout << "(";
+    //         for(int k = 0; k < 3; k++) {
+    //             std::cout << pixels[(i * (16 * 3)) + (j * 3) + k] << ",";
+    //         }
+    //         std::cout << ") ";
+    //     }
+    //     std::cout << std::endl;
+    // }
+
+    heightA->unbindColorTexture();
+    heightB->unbind();
+
+    normalCalculationShader->detach();
+
+    swapBuffers();
+}
+
+void Heightfield::swapBuffers() {
     // Swap buffers around
     FBO* temp = heightA;
     heightA = heightB;

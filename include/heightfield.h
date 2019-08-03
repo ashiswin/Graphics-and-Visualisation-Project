@@ -15,7 +15,7 @@ class Heightfield {
         void addHeight(float amount, glm::vec2 location);
         void stepSimulation();
         void calculateNormals();
-        
+
     private:
         FBO *heightA; // for reading height data
         FBO *heightB; // for writing height data
@@ -46,9 +46,13 @@ class Heightfield {
         GLuint stepSimulationWidthLocation;
         GLuint stepSimulationHeightLocation;
         
+        GLuint normalCalculationWidthLocation;
+        GLuint normalCalculationHeightLocation;
+
         void generateGeometry();
         void prepareBuffers();
         void prepareShaders();
+        void swapBuffers();
 };
 
 #endif

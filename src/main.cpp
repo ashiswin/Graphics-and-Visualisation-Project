@@ -29,7 +29,7 @@ GLuint widthLocation, heightLocation;
 Object *quad;
 
 Camera *camera;
-Light *light;
+DirectionalLight *light;
 // Texture *texture, *normals;
 
 FBO *fbo;
@@ -79,10 +79,11 @@ void keyPressed(unsigned char c, int x, int y) {
             break;
         case 'v':
             // water->addHeight(10.0, glm::vec2(WIDTH / 2, HEIGHT / 2));
-            water->addHeight(10 + rand() % 20, glm::vec2(rand() % WIDTH, rand() % HEIGHT));
+            water->addHeight(rand() % 20, glm::vec2(rand() % WIDTH, rand() % HEIGHT));
             break;
         case 'c':
             water->stepSimulation();
+            water->calculateNormals();
             break;
     }
     
@@ -136,6 +137,8 @@ void testHeightfield() {
     waterShader->attach();
     waterShader->loadProjectionMatrix(projectionMatrix);
     waterShader->loadViewMatrix(camera->getViewMatrix());
+    waterShader->loadLight(light);
+
     glUniform1f(widthLocation, WIDTH);
     glUniform1f(heightLocation, HEIGHT);
 
@@ -148,6 +151,8 @@ void testHeightfield() {
 
 void timer(int value) {
     water->stepSimulation();
+    water->calculateNormals();
+    
     glutPostRedisplay();
     glutTimerFunc(1000 / 60, timer, 0);
 }
@@ -178,7 +183,7 @@ int main(int argc, char* argv[]) {
     camera = new Camera();
     camera->move(0, 2, 5);
 
-    light = new Light(glm::vec3(1, 1, 1), glm::(1.0, 1.0, 1.0));
+    light = new DirectionalLight(glm::vec3(1, -1, 0), glm::vec3(0, 0, 1));
     
     projectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 1000.0f);
 
