@@ -60,6 +60,8 @@ void FBO::bindColorTexture(GLenum target) {
     glActiveTexture(target);
     glBindTexture(GL_TEXTURE_2D, colorTextureID);
 
+    std::cout << colorTextureID << std::endl;
+
 }
 
 void FBO::unbindColorTexture() {

@@ -14,7 +14,7 @@ uniform float height;
 uniform sampler2D textureSampler;
 
 void main() {
-    vec2 texCoords = position.xz / vec2(width, height);
+    vec2 texCoords = vec2(position.x / width, position.z / height);
     texCoords.y = -texCoords.y;
 
     vec4 texel = texture(textureSampler, texCoords);

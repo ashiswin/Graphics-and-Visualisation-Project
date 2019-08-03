@@ -7,6 +7,33 @@
 #include <heightfield.h>
 #include <fbo.h>
 #include <shader.h>
+#include <object.h>
+
+float qvertices[] = {
+    -1, 1, 0,
+    1, 1, 0,
+    1, -1, 0,
+    -1, -1, 0
+};
+
+float qtexcoords[] = {
+    0, 0,
+    1, 0,
+    1, 1,
+    0, 1
+};
+
+float qnormals[] = {
+    0, 0, 1,
+    0, 0, 1,
+    0, 0, 1,
+    0, 0, 1
+};
+
+int qindices[] = {
+    0, 1, 3,
+    1, 2, 3
+};
 
 Heightfield::Heightfield(int width, int height) {
     this->width = width;
@@ -71,7 +98,6 @@ void Heightfield::generateGeometry() {
 
     // Convert data into C arrays
     float *vertexArray = (float*) malloc(vertices.size() * 3 * sizeof(float));
-    // unsigned int *indexArray = (unsigned int*) malloc(indices.size() * sizeof(unsigned int));
 
     for(int i = 0; i < vertices.size(); i++) {
         vertexArray[i * 3] = vertices[i][0];
@@ -96,6 +122,7 @@ void Heightfield::generateGeometry() {
 }
 
 void Heightfield::draw(Shader *shader) {
+    std::cout << "Drawing water" << std::endl;
     shader->loadModelMatrix(modelMatrix);
     shader->enableTexture();
 
@@ -119,10 +146,14 @@ void Heightfield::draw(Shader *shader) {
 void Heightfield::addHeight(float amount, glm::vec2 location) {
     addHeightShader->attach();
     addHeightShader->enableTexture();
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+    // glUniform1f(widthLocation, this->width);
+    // glUniform1f(heightLocation, this->height);
     
-    glUniform1f(widthLocation, this->width);
-    glUniform1f(heightLocation, this->height);
-    
+    Object *o = new Object();
+    o->loadVertices(qvertices, qtexcoords, qnormals, qindices, 4, 6);
+
     GLenum err;
     while((err = glGetError()) != GL_NO_ERROR)
     {
@@ -131,7 +162,7 @@ void Heightfield::addHeight(float amount, glm::vec2 location) {
 
     glm::vec2 texLocation(location.x / this->width, location.y / this->height);
     std::cout << "Adding " << amount << " at " << texLocation[0] << "," << texLocation[1] << std::endl;
-    
+
     glUniform2fv(locationLocation, 1, &texLocation[0]);
     glUniform1f(amountLocation, amount);
 
@@ -139,21 +170,27 @@ void Heightfield::addHeight(float amount, glm::vec2 location) {
     {
         std::cout << "Error in Object::addHeight 1: " << err << std::endl;
     }
+
     heightB->bind(); // render to height B
     heightA->bindColorTexture(GL_TEXTURE0);
-
-    glBindVertexArray(vaoId);
-    glEnableVertexAttribArray(0);
     
-    glDrawElements(GL_TRIANGLES, this->nIndices, GL_UNSIGNED_INT, 0);
+    // glBindVertexArray(vaoId);
+    // glEnableVertexAttribArray(0);
+    
+    // glDrawElements(GL_TRIANGLES, this->nIndices, GL_UNSIGNED_INT, 0);
 
     while((err = glGetError()) != GL_NO_ERROR)
     {
         std::cout << "Error in Object::addHeight 2: " << err << std::endl;
     }
 
-    glDisableVertexAttribArray(0);
-    glBindVertexArray(0);
+    // glDisableVertexAttribArray(0);
+    // glBindVertexArray(0);
+
+
+    o->setShader(addHeightShader);
+    o->draw();
+    
 
     heightA->unbindColorTexture();
     heightB->unbind();

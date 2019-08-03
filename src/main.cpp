@@ -77,7 +77,7 @@ void keyPressed(unsigned char c, int x, int y) {
             camera->move(0, 0, 1);
             break;
         case 'v':
-            water->addHeight(1.0, glm::vec2(1.0f, 1.0f));
+            water->addHeight(1.0, glm::vec2(0, 0));
             break;
     }
     
