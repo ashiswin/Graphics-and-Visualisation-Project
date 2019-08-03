@@ -62,7 +62,7 @@ bool Shader::compile() {
     projectionMatrixLocation = getUniformLocation("projectionMatrix");
     viewMatrixLocation = getUniformLocation("viewMatrix");
 
-    lightPositionLocation = getUniformLocation("lightPosition");
+    lightDirectionLocation = getUniformLocation("lightDirection");
     lightColorLocation = getUniformLocation("lightColor");
     shineDamperLocation = getUniformLocation("shineDamper");
     reflectivityLocation = getUniformLocation("reflectivity");
@@ -95,8 +95,8 @@ void Shader::loadSpecularComponents(float shineDamper, float reflectivity) {
     glUniform1f(reflectivityLocation, reflectivity);
 }
 
-void Shader::loadLight(Light *light) {
-    glUniform3fv(lightPositionLocation, 1, &light->getPosition()[0]);
+void Shader::loadLight(DirectionalLight *light) {
+    glUniform3fv(lightDirectionLocation, 1, &light->getDirection()[0]);
     glUniform3fv(lightColorLocation, 1, &light->getColor()[0]);
 }
 
