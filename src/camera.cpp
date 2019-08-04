@@ -15,6 +15,13 @@ void Camera::move(float dx, float dy, float dz) {
     position.z += dz;
 }
 
+void Camera::rotate(float a, float b, float c) {
+    // pitch x, yaw y, roll z
+    pitch = a + pitch;
+    yaw = b + yaw;
+    roll = c + roll;
+}
+
 glm::mat4 Camera::getViewMatrix() {
     glm::mat4 view = glm::rotate(glm::mat4(1.0f), pitch, glm::vec3(1.0f, 0.0f, 0.0f));
     view = glm::rotate(view, yaw, glm::vec3(0.0f, 1.0f, 0.0f));

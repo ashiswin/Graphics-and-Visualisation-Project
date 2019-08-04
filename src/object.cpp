@@ -28,6 +28,10 @@ void Object::spin() {
     transformation = glm::rotate(glm::mat4(1.0f), glm::radians(yaw), glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
+void Object::scale(int val) {
+    transformation = glm::scale(transformation, glm::vec3(val, val, val));
+}
+
 void Object::loadVertices(float* vertices, unsigned int* indices, int nVertices, int nIndices) {
     glGenBuffers(1, &verticesVBO);
     glBindBuffer(GL_ARRAY_BUFFER, this->verticesVBO);
@@ -211,8 +215,8 @@ void Object::loadFromObj(char* filename) {
 
             if(vect.size() > 0) {
                 glm::vec2 currentTex = vect[v[6 + i] - 1];
-                texcoords[vertexPointer * 2] = currentTex[0];
-                texcoords[vertexPointer * 2 + 1] = currentTex[1];   
+                texcoords[vertexPointer * 2] = currentTex[0] * 5.0f;
+                texcoords[vertexPointer * 2 + 1] = currentTex[1] * 5.0f;   
             }
 
             glm::vec3 currentNorm;
@@ -277,6 +281,7 @@ void Object::loadFromObj(char* filename) {
     free(texcoords);
 
     std::cout << "Loaded " << nIndices / 3 << " faces from " << filename << std::endl;
+    
 }
 
 void Object::setShader(Shader* shader) {
@@ -297,17 +302,31 @@ void Object::setNormalMap(Texture* normals) {
 }
 
 void Object::draw() {
+    GLenum err;
     shader->loadModelMatrix(transformation);
     shader->loadSpecularComponents(shineDampener, reflectivity);
-    glBindVertexArray(vaoId);
-    glEnableVertexAttribArray(0);
-    if(hasTextures) glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
 
-    GLenum err;
     while((err = glGetError()) != GL_NO_ERROR)
     {
         std::cout << "Error in Object::draw 0: " << err << std::endl;
+    }
+    glBindVertexArray(vaoId);
+    while((err = glGetError()) != GL_NO_ERROR)
+    {
+        std::cout << "Error in Object::draw 1: " << err << std::endl;
+    }
+    glEnableVertexAttribArray(0);
+    while((err = glGetError()) != GL_NO_ERROR)
+    {
+        std::cout << "Error in Object::draw 2: " << err << std::endl;
+    }
+    if(hasTextures) glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+
+    // GLenum err;
+    while((err = glGetError()) != GL_NO_ERROR)
+    {
+        std::cout << "Error in Object::draw 3: " << err << std::endl;
     }
     // if(texture != NULL) {
     //     shader->enableTexture();
@@ -320,14 +339,14 @@ void Object::draw() {
     
     while((err = glGetError()) != GL_NO_ERROR)
     {
-        std::cout << "Error in Object::draw 1: " << err << std::endl;
+        std::cout << "Error in Object::draw 4: " << err << std::endl;
     }
 
     glDrawElements(GL_TRIANGLES, nIndices, GL_UNSIGNED_INT, 0);
 
     while((err = glGetError()) != GL_NO_ERROR)
     {
-        std::cout << "Error in Object::draw 2: " << err << std::endl;
+        std::cout << "Error in Object::draw 5: " << err << std::endl;
     }
 
     glDisableVertexAttribArray(2);

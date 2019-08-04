@@ -71,6 +71,9 @@ bool Shader::compile() {
     normalMapLocation = getUniformLocation("normalSampler");
     textureLocation = getUniformLocation("textureSampler");
 
+    reflectionTexLocation = getUniformLocation("reflectionTexture");
+    refractionTexLocation = getUniformLocation("refractionTexture");
+
     return success == GL_TRUE;
 }
 

@@ -27,17 +27,21 @@ Shader *secondPass;
 Shader *waterShader;
 
 GLuint widthLocation, heightLocation;
+GLuint reflectionLocation, refractionLocation;
 Object *quad;
+Object *skybox;
 
-Camera *camera;
+Camera *camera, *reflectCamera, *refractCamera;
 DirectionalLight *light;
 // Texture *texture, *normals;
 
-FBO *fbo;
+FBO *fbo, *reflectFBO, *refractFBO;
 Heightfield *water;
 LightMesh *lightMesh;
 
 glm::mat4 projectionMatrix;
+
+Texture *skyboxTexture;
 
 float vertices[] = {
     -1, 1, 0,
@@ -122,12 +126,10 @@ void update() {
     secondPass->enableTexture();
 
     // TODO: Bind FBO color texture to GL_TEXTURE0
-    fbo->bindColorTexture(GL_TEXTURE0);
     quad->setShader(secondPass);
     quad->draw();
 
     // TODO: Unbind FBO color texture
-    fbo->unbindColorTexture();
     secondPass->detach();
 
     glutSwapBuffers();
@@ -136,6 +138,42 @@ void update() {
 void testHeightfield() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    secondPass->attach();
+    secondPass->loadProjectionMatrix(projectionMatrix);
+    secondPass->loadViewMatrix(camera->getViewMatrix());
+
+    secondPass->enableTexture();
+    skyboxTexture->bind(GL_TEXTURE0);
+
+    skybox->draw();
+    secondPass->detach();
+    
+    GLenum err;
+    while((err = glGetError()) != GL_NO_ERROR)
+    {
+        std::cout << "Error in Object::thf: " << err << std::endl;
+    }
+    secondPass->attach();
+    secondPass->loadProjectionMatrix(projectionMatrix);
+    secondPass->loadViewMatrix(reflectCamera->getViewMatrix());
+
+
+    reflectFBO->bind();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    skybox->setShader(secondPass);
+    skybox->draw();
+    reflectFBO->unbind();
+
+    secondPass->attach();
+    secondPass->loadProjectionMatrix(projectionMatrix);
+    secondPass->loadViewMatrix(refractCamera->getViewMatrix());
+
+    refractFBO->bind();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    skybox->setShader(secondPass);
+    skybox->draw();
+    refractFBO->unbind();
+
     waterShader->attach();
     waterShader->loadProjectionMatrix(projectionMatrix);
     waterShader->loadViewMatrix(camera->getViewMatrix());
@@ -143,9 +181,17 @@ void testHeightfield() {
 
     glUniform1f(widthLocation, WIDTH);
     glUniform1f(heightLocation, HEIGHT);
+    glUniform1i(reflectionLocation, 2);
+    glUniform1i(refractionLocation, 3);
+
+    reflectFBO->bindColorTexture(GL_TEXTURE2);
+    refractFBO->bindColorTexture(GL_TEXTURE3);
 
     water->draw(waterShader);
 
+    reflectFBO->unbindColorTexture();
+    refractFBO->unbindColorTexture();
+    
     waterShader->detach();
 
     glutSwapBuffers();
@@ -185,38 +231,67 @@ int main(int argc, char* argv[]) {
     camera = new Camera();
     camera->move(0, 2, 5);
 
+    reflectCamera = new Camera();
+    reflectCamera->move(0, 10, 5);
+    reflectCamera->rotate(0, 90, 0);
+    refractCamera = new Camera();
+    refractCamera->move(0, -10, -5);
+    refractCamera->rotate(0, -90, 0);
+
     light = new DirectionalLight(glm::vec3(1, -1, 0), glm::vec3(0, 0, 1));
     
     projectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 1000.0f);
 
     water = new Heightfield(WIDTH, HEIGHT);
+    
     lightMesh = new LightMesh(200);
     
+    firstPass = new Shader();
+    firstPass->attachShader(GL_VERTEX_SHADER, "shaders/simple_vertex.glsl");
+    firstPass->attachShader(GL_FRAGMENT_SHADER, "shaders/simple_fragment.glsl");
+    if(!firstPass->compile()) std::cout << "Error compiling first pass shader!" << std::endl;
+    // firstPass->enableTexture();
+    GLenum err;
+    while((err = glGetError()) != GL_NO_ERROR)
+    {
+        std::cout << "Error in Object::main: " << err << std::endl;
+    }
     waterShader = new Shader();
     std::cout << "Compiling water vertex shader..." << std::endl;
     waterShader->attachShader(GL_VERTEX_SHADER, "shaders/water_vertex.glsl");
     std::cout << "Compiling water fragment shader..." << std::endl;
     waterShader->attachShader(GL_FRAGMENT_SHADER, "shaders/water_fragment.glsl");
     if(!waterShader->compile()) std::cout << "Error compiling water shader!" << std::endl;
-
+    
     widthLocation = waterShader->getUniformLocation("width");
     heightLocation = waterShader->getUniformLocation("height");
-
+    reflectionLocation = waterShader->getUniformLocation("reflectionTexture");
+    refractionLocation = waterShader->getUniformLocation("refractionTexture");
+    
     // Objects for testing FBO
-    firstPass = new Shader();
-    firstPass->attachShader(GL_VERTEX_SHADER, "shaders/simple_vertex.glsl");
-    firstPass->attachShader(GL_FRAGMENT_SHADER, "shaders/simple_fragment.glsl");
-    if(!firstPass->compile()) std::cout << "Error compiling first pass shader!" << std::endl;
 
     secondPass = new Shader();
     secondPass->attachShader(GL_VERTEX_SHADER, "shaders/simple_vertex.glsl");
     secondPass->attachShader(GL_FRAGMENT_SHADER, "shaders/simple_textured_fragment.glsl");
     if(!secondPass->compile()) std::cout << "Error compiling second pass shader!" << std::endl;
+    
+    skybox = new Object();
+    skyboxTexture = new Texture();
+    skyboxTexture->loadFromFile("assets/textures/sky.jpg");
+
+    skybox->loadFromObj("assets/sphere.obj");
+    skybox->setShader(secondPass);
+    skybox->setTexture(skyboxTexture);
+    skybox->scale(100);
 
     quad = new Object();
     quad->loadVertices(vertices, texcoords, normals, indices, 4, 6);
 
     fbo = new FBO(800, 600);
+    reflectFBO = new FBO(800, 600);
+    refractFBO = new FBO(800, 600);
+
+    
 
     glutKeyboardFunc(&keyPressed);
     glutDisplayFunc(testHeightfield);

@@ -43,9 +43,15 @@ Heightfield::Heightfield(int width, int height) {
     prepareBuffers();
     prepareShaders();
     generateGeometry();
+    connectTexture();
 
     o = new Object();
     o->loadVertices(qvertices, qtexcoords, qnormals, qindices, 4, 6);
+}
+
+void Heightfield::connectTexture() {
+    glGenTextures(0, &refractTextureLocation);
+    glGenTextures(1, &reflectTextureLocation);
 }
 
 void Heightfield::prepareBuffers() {
@@ -90,6 +96,7 @@ void Heightfield::prepareShaders() {
 
     normalCalculationWidthLocation = normalCalculationShader->getUniformLocation("width");
     normalCalculationHeightLocation = normalCalculationShader->getUniformLocation("height");
+
 }
 
 void Heightfield::generateGeometry() {

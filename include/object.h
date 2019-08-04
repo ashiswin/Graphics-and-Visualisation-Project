@@ -20,6 +20,7 @@ class Object {
 
         void draw();
         void spin();
+        void scale(int val);
         
     private:
         GLuint verticesVBO;

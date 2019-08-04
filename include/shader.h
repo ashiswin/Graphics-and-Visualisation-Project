@@ -38,6 +38,9 @@ class Shader {
         int hasNormalMapLocation;
         int normalMapLocation;
         int textureLocation;
+
+        int reflectionTexLocation;
+        int refractionTexLocation;
 };
 
 #endif

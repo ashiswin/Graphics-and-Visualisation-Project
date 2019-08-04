@@ -3,6 +3,7 @@
 in vec3 position;
 
 out vec4 pass_texel;
+out vec2 pass_texCoords;
 
 uniform mat4 modelMatrix;
 uniform mat4 projectionMatrix;
@@ -21,6 +22,7 @@ uniform sampler2D textureSampler;
 
 void main() {
     vec2 texCoords = vec2(position.x / width, -position.z / height);
+    pass_texCoords = texCoords;
 
     vec4 texel = texture(textureSampler, texCoords);
     pass_texel = texel;

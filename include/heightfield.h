@@ -13,17 +13,21 @@ class Heightfield {
         Heightfield(int width, int height);
         void draw(Shader* shader);
         void addHeight(float amount, glm::vec2 location);
+        void lightShading(FBO *reflectFBO, FBO *refractFBO);
         void stepSimulation();
         void calculateNormals();
+        void connectTexture();
 
     private:
         FBO *heightA; // for reading height data
         FBO *heightB; // for writing height data
         FBO *normals;
+        FBO *lightFBO;
 
         Shader *addHeightShader;
         Shader *normalCalculationShader;
         Shader *stepSimulationShader;
+        Shader *lightTextureShader;
 
         Object* o;
 
@@ -48,6 +52,9 @@ class Heightfield {
         
         GLuint normalCalculationWidthLocation;
         GLuint normalCalculationHeightLocation;
+
+        GLuint reflectTextureLocation;
+        GLuint refractTextureLocation;
 
         void generateGeometry();
         void prepareBuffers();
