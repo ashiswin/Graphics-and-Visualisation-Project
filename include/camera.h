@@ -11,7 +11,6 @@ class Camera {
         glm::mat4 getViewMatrix();
         void rotate(float a, float b, float c);
 
-    private:
         glm::vec3 position;
         float pitch;
         float yaw;

@@ -215,8 +215,8 @@ void Object::loadFromObj(char* filename) {
 
             if(vect.size() > 0) {
                 glm::vec2 currentTex = vect[v[6 + i] - 1];
-                texcoords[vertexPointer * 2] = currentTex[0] * 5.0f;
-                texcoords[vertexPointer * 2 + 1] = currentTex[1] * 5.0f;   
+                texcoords[vertexPointer * 2] = currentTex[0];
+                texcoords[vertexPointer * 2 + 1] = currentTex[1];   
             }
 
             glm::vec3 currentNorm;

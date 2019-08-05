@@ -30,3 +30,7 @@ void Texture::bind(GLenum target) {
     glActiveTexture(target);
     glBindTexture(GL_TEXTURE_2D, textureId);
 }
+
+void Texture::unbind() {
+    glBindTexture(GL_TEXTURE_2D, 0);
+}

@@ -8,7 +8,7 @@ class Texture {
         Texture();
         void loadFromFile(char* filename);
         void bind(GLenum target);
-        void unbind(GLenum target);
+        void unbind();
     
     private:
         GLuint textureId;

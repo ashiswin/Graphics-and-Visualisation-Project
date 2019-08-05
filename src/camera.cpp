@@ -23,8 +23,8 @@ void Camera::rotate(float a, float b, float c) {
 }
 
 glm::mat4 Camera::getViewMatrix() {
-    glm::mat4 view = glm::rotate(glm::mat4(1.0f), pitch, glm::vec3(1.0f, 0.0f, 0.0f));
-    view = glm::rotate(view, yaw, glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 view = glm::rotate(glm::mat4(1.0f), glm::radians(pitch), glm::vec3(1.0f, 0.0f, 0.0f));
+    view = glm::rotate(view, glm::radians(yaw), glm::vec3(0.0f, 1.0f, 0.0f));
     view = glm::translate(view, -position);
 
     return view;

@@ -4,13 +4,17 @@
 #include <lightmesh.h>
 #include <object.h>
 #include <shader.h>
+#include <fbo.h>
 
 LightMesh::LightMesh(int detail) {
-    generateGeometry(detail);
+    this->detail = detail;
+    
+    generateGeometry();
+    prepareBuffers();
     prepareShaders();
 }
 
-void LightMesh::generateGeometry(int detail) {
+void LightMesh::generateGeometry() {
     std::vector<glm::vec3> vertices;
     std::vector<unsigned> indices;
 
@@ -47,6 +51,9 @@ void LightMesh::generateGeometry(int detail) {
     plane->loadVertices(vertexArray, &indices[0], vertices.size(), indices.size());
 }
 
+void LightMesh::prepareBuffers() {
+    caustics = new FBO(detail, detail);
+}
 void LightMesh::prepareShaders() {
     causticShader = new Shader();
     std::cout << "Compiling caustic vertex shader..." << std::endl;

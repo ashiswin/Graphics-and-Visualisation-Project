@@ -15,6 +15,7 @@
 #include <fbo.h>
 #include <heightfield.h>
 #include <lightmesh.h>
+#include <skybox.h>
 
 #define WIDTH 256
 #define HEIGHT 256
@@ -27,9 +28,10 @@ Shader *secondPass;
 Shader *waterShader;
 
 GLuint widthLocation, heightLocation;
-GLuint reflectionLocation, refractionLocation;
+GLuint reflectionLocation, refractionLocation, planeLocation;
 Object *quad;
-Object *skybox;
+// Object *skybox;
+Object *plane;
 
 Camera *camera, *reflectCamera, *refractCamera;
 DirectionalLight *light;
@@ -38,6 +40,7 @@ DirectionalLight *light;
 FBO *fbo, *reflectFBO, *refractFBO;
 Heightfield *water;
 LightMesh *lightMesh;
+Skybox *skybox;
 
 glm::mat4 projectionMatrix;
 
@@ -48,6 +51,13 @@ float vertices[] = {
     1, 1, 0,
     1, -1, 0,
     -1, -1, 0
+};
+
+float pvertices[] = {
+    -10, -2, 0,
+    10, -2, 0,
+    10, -2, -20,
+    -10, -2, -20
 };
 
 float texcoords[] = {
@@ -64,28 +74,65 @@ float normals[] = {
     0, 0, 1
 };
 
+float pnormals[] = {
+    0, 1, 0,
+    0, 1, 0,
+    0, 1, 0,
+    0, 1, 0
+};
+
 int indices[] = {
     0, 1, 3,
     1, 2, 3
 };
 
+bool mouseHeld;
+int prevY = -1;
+
+void mousePressed(int button, int state, int x, int y) {
+    if(button == 0) {
+        mouseHeld = state == 0;
+        prevY = y;
+    }
+}
+
+void mouseMoved(int x, int y) {
+    if(mouseHeld) {
+        if(y - prevY > 0) {
+            camera->rotate(1, 0, 0);
+        }
+        else if(y - prevY < 0){
+            camera->rotate(-1, 0, 0);
+        }
+        prevY = y;
+    }
+}
+
 void keyPressed(unsigned char c, int x, int y) {
     switch(c) {
         case 'w':
-            camera->move(0, 0, -1);
+            camera->move(0, 1, 0);
+            refractCamera->move(0, 1, 0);
+            reflectCamera->move(0, -1, 0);
             break;
         case 'd':
             camera->move(1, 0, 0);
+            refractCamera->move(1, 0, 0);
+            reflectCamera->move(1, 0, 0);
             break;
         case 'a':
             camera->move(-1, 0, 0);
+            refractCamera->move(-1, 0, 0);
+            reflectCamera->move(-1, 0, 0);
             break;
         case 's':
-            camera->move(0, 0, 1);
+            camera->move(0, -1, 0);
+            refractCamera->move(0, -1, 0);
+            reflectCamera->move(0, 1, 0);
             break;
         case 'v':
             // water->addHeight(10.0, glm::vec2(WIDTH / 2, HEIGHT / 2));
-            water->addHeight(rand() % 20, glm::vec2(rand() % WIDTH, rand() % HEIGHT));
+            water->addHeight(10 + rand() % 20, glm::vec2(rand() % WIDTH, rand() % HEIGHT));
             break;
         case 'c':
             water->stepSimulation();
@@ -138,41 +185,61 @@ void update() {
 void testHeightfield() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    secondPass->attach();
-    secondPass->loadProjectionMatrix(projectionMatrix);
-    secondPass->loadViewMatrix(camera->getViewMatrix());
-
-    secondPass->enableTexture();
-    skyboxTexture->bind(GL_TEXTURE0);
-
-    skybox->draw();
-    secondPass->detach();
-    
     GLenum err;
     while((err = glGetError()) != GL_NO_ERROR)
     {
-        std::cout << "Error in Object::thf: " << err << std::endl;
+        std::cout << "Error in Object::thf 0: " << err << std::endl;
     }
-    secondPass->attach();
-    secondPass->loadProjectionMatrix(projectionMatrix);
-    secondPass->loadViewMatrix(reflectCamera->getViewMatrix());
+    
+    // firstPass->attach();
+    // firstPass->loadProjectionMatrix(projectionMatrix);
+    // firstPass->loadViewMatrix(camera->getViewMatrix());
 
+    // plane->setShader(firstPass);
+    // plane->draw();
 
+    // firstPass->detach();
+    
+    while((err = glGetError()) != GL_NO_ERROR)
+    {
+        std::cout << "Error in Object::thf 1: " << err << std::endl;
+    }
+
+    // Render reflection
     reflectFBO->bind();
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    skybox->setShader(secondPass);
-    skybox->draw();
+    
+    reflectCamera->pitch = -camera->pitch;
+    reflectCamera->position = camera->position;
+    reflectCamera->position[1] = -camera->position[1];
+    
+    skybox->setClippingPlane(glm::vec4(0, 1, 0, 1));
+   
+    skybox->draw(projectionMatrix, reflectCamera->getViewMatrix());
+    skybox->disableClippingPlane();
+
     reflectFBO->unbind();
 
-    secondPass->attach();
-    secondPass->loadProjectionMatrix(projectionMatrix);
-    secondPass->loadViewMatrix(refractCamera->getViewMatrix());
-
+    // Render refraction
     refractFBO->bind();
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    skybox->setShader(secondPass);
-    skybox->draw();
+    
+    skybox->setClippingPlane(glm::vec4(0, -1, 0, 1));
+    skybox->draw(projectionMatrix, camera->getViewMatrix());
+    skybox->disableClippingPlane();
+    
+    // firstPass->attach();
+    // firstPass->loadProjectionMatrix(projectionMatrix);
+    // firstPass->loadViewMatrix(camera->getViewMatrix());
+
+    // plane->setShader(firstPass);
+    // plane->draw();
+    
     refractFBO->unbind();
+
+    skybox->draw(projectionMatrix, camera->getViewMatrix());
 
     waterShader->attach();
     waterShader->loadProjectionMatrix(projectionMatrix);
@@ -229,23 +296,27 @@ int main(int argc, char* argv[]) {
     glClearDepth(1.0);
     
     camera = new Camera();
-    camera->move(0, 2, 5);
+    camera->move(0, 5, 10);
+    camera->rotate(20, 0, 0);
 
     reflectCamera = new Camera();
-    reflectCamera->move(0, 10, 5);
-    reflectCamera->rotate(0, 90, 0);
+    reflectCamera->move(0, -2, -5);
+    // reflectCamera->rotate(-45, 0, 0);
     refractCamera = new Camera();
-    refractCamera->move(0, -10, -5);
-    refractCamera->rotate(0, -90, 0);
+    // refractCamera->move(0, 2, -5);
+    // refractCamera->rotate(45, 0, 0);
 
-    light = new DirectionalLight(glm::vec3(1, -1, 0), glm::vec3(0, 0, 1));
+    light = new DirectionalLight(glm::vec3(0, -1, 0), glm::vec3(1, 1, 1));
     
     projectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 1000.0f);
 
     water = new Heightfield(WIDTH, HEIGHT);
-    
     lightMesh = new LightMesh(200);
-    
+    skybox = new Skybox();
+
+    plane = new Object();
+    plane->loadVertices(pvertices, texcoords, pnormals, indices, 4, 6);
+
     firstPass = new Shader();
     firstPass->attachShader(GL_VERTEX_SHADER, "shaders/simple_vertex.glsl");
     firstPass->attachShader(GL_FRAGMENT_SHADER, "shaders/simple_fragment.glsl");
@@ -274,15 +345,17 @@ int main(int argc, char* argv[]) {
     secondPass->attachShader(GL_VERTEX_SHADER, "shaders/simple_vertex.glsl");
     secondPass->attachShader(GL_FRAGMENT_SHADER, "shaders/simple_textured_fragment.glsl");
     if(!secondPass->compile()) std::cout << "Error compiling second pass shader!" << std::endl;
-    
-    skybox = new Object();
-    skyboxTexture = new Texture();
-    skyboxTexture->loadFromFile("assets/textures/sky.jpg");
 
-    skybox->loadFromObj("assets/sphere.obj");
-    skybox->setShader(secondPass);
-    skybox->setTexture(skyboxTexture);
-    skybox->scale(100);
+    planeLocation = secondPass->getUniformLocation("plane");
+    
+    // skybox = new Object();
+    // skyboxTexture = new Texture();
+    // skyboxTexture->loadFromFile("assets/textures/env.jpg");
+
+    // skybox->loadFromObj("assets/sphere.obj");
+    // skybox->setShader(secondPass);
+    // skybox->setTexture(skyboxTexture);
+    // skybox->scale(100);
 
     quad = new Object();
     quad->loadVertices(vertices, texcoords, normals, indices, 4, 6);
@@ -294,6 +367,8 @@ int main(int argc, char* argv[]) {
     
 
     glutKeyboardFunc(&keyPressed);
+    glutMouseFunc(&mousePressed);
+    glutMotionFunc(&mouseMoved);
     glutDisplayFunc(testHeightfield);
     glutTimerFunc(1000 / 60, timer, 0);
 
