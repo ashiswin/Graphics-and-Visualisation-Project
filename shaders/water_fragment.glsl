@@ -2,10 +2,12 @@
 
 in vec4 pass_texel;
 in vec2 pass_texCoords;
+in vec4 clipSpace;
 
 in vec3 surfaceNormal;
 in vec3 toLightVector;
 in vec3 toCameraVector;
+in vec3 position_out;
 
 out vec4 frag_colour;
 
@@ -13,11 +15,17 @@ uniform mat4 modelMatrix;
 uniform vec3 lightColor;
 uniform float shineDamper;
 uniform float reflectivity;
+uniform vec3 center;
 
 uniform sampler2D reflectionTexture;
 uniform sampler2D refractionTexture;
 
 void main() {
+
+  vec2 ndc = (clipSpace.xy/clipSpace.w) / 2.0 + 0.5;
+  vec2 refractTexCoords = vec2(ndc.x, ndc.y);
+  vec2 reflectTexCoords = vec2(ndc.x, -ndc.y);
+
   vec3 ambient = 0.1 * lightColor;
 
   vec3 normal = normalize(surfaceNormal);
@@ -35,9 +43,16 @@ void main() {
   vec3 finalSpecular = dampedFactor * reflectivity * lightColor;
 
   vec4 reflectColor = texture(reflectionTexture, pass_texCoords);
-  vec4 refractColor = texture(refractionTexture, pass_texCoords);
+  vec4 refractColor = texture(refractionTexture, refractTexCoords);
   
-  frag_colour = mix(reflectColor, refractColor, dot(normalize(toCameraVector), vec3(0, 1, 0)));
-
-  // frag_colour = vec4(ambient, 1.0) + vec4(diffuse, 1.0);//vec4(pass_texel.xy, 1.0, 1.0);
+  float distance = sqrt(pow(position_out[0] - (+127.0), 2) + pow(position_out[1] - (0.0), 2) + pow(position_out[2] - (-180.0), 2));
+  
+  if (distance < 60.0) {
+    frag_colour = mix(reflectColor, refractColor, dot(normalize(toCameraVector), vec3(0, 1, 0)));
+    // frag_colour = mix(reflectColor, refractColor, 0.1);
+    // frag_colour = reflectColor;
+  }
+  else {
+    discard;
+  }
 }

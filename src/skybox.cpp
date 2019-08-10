@@ -17,7 +17,7 @@ Skybox::Skybox() {
 void Skybox::prepareGeometry() {
     skybox = new Object();
     skybox->loadFromObj("assets/sphere.obj");
-    skybox->scale(100);
+    skybox->scale(200);
 }
 
 void Skybox::prepareShaders() {

@@ -6,6 +6,10 @@
 #include <cstdlib>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <glm/vec3.hpp>
+// #include <glm/vec3.hpp>
+#include <glm/vec2.hpp>
+
 #include <object.h>
 #include <shader.h>
 #include <texture.h>
@@ -23,13 +27,18 @@ Object::Object() {
 }
 
 void Object::spin() {
-    yaw += 1.0f;
+    yaw += 10.0f;
 
     transformation = glm::rotate(glm::mat4(1.0f), glm::radians(yaw), glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
+
 void Object::scale(int val) {
     transformation = glm::scale(transformation, glm::vec3(val, val, val));
+}
+
+void Object::move(float dx, float dy, float dz) {
+    transformation = glm::translate(transformation, glm::vec3(dx, dy, dz));
 }
 
 void Object::loadVertices(float* vertices, unsigned int* indices, int nVertices, int nIndices) {
@@ -130,20 +139,27 @@ void Object::loadFromObj(char* filename) {
             char scratch;
             int v1, v2, v3, n1, n2, n3, t1, t2, t3;
             int v4, n4, t4;
+            int spaces = 0;
             int slashes = 0;
 
             for(int i = 0; i < strlen(buffer); i++) {
+                if(buffer[i] == ' ') spaces++;
                 if(buffer[i] == '/') slashes++;
             }
-            
-            if(slashes > 3) {
+            // std::cout << "COUNTING" << std::endl;
+            // std::cout << spaces << slashes << std::endl;
+            if(spaces == 4 && slashes == 4) {
+                ss >> v1 >> scratch >> t1;
+                ss >> v2 >> scratch >> t2;
+                ss >> v3 >> scratch >> t3;
+                ss >> v4 >> scratch >> t4;
+
+                n1 = n2 = n3 = n4 = -1;
+            } else if (spaces == 3 && slashes == 6) {
                 ss >> v1 >> scratch >> t1 >> scratch >> n1;
                 ss >> v2 >> scratch >> t2 >> scratch >> n2;
                 ss >> v3 >> scratch >> t3 >> scratch >> n3;
-
-                if(slashes > 6) ss >> v4 >> scratch >> t4 >> scratch >> n4;
-            }
-            else {
+            } else {
                 ss >> v1 >> scratch >> t1;
                 ss >> v2 >> scratch >> t2;
                 ss >> v3 >> scratch >> t3;
@@ -153,7 +169,7 @@ void Object::loadFromObj(char* filename) {
 
             std::vector<unsigned> face;
 
-            if(slashes <= 6) {
+            if(slashes == 6) {
                 face.push_back(v1);
                 face.push_back(v2);
                 face.push_back(v3);
@@ -193,7 +209,8 @@ void Object::loadFromObj(char* filename) {
             }
         }
     }
-    
+
+
     float *vertices = (float*) malloc(sizeof(float) * vecv.size() * 3);
     float *normals = (float*) malloc(sizeof(float) * vecv.size() * 3);
     float *texcoords = (float*) malloc(sizeof(float) * vecv.size() * 2);
@@ -202,16 +219,21 @@ void Object::loadFromObj(char* filename) {
     if(vertices == NULL) std::cout << "FAILED TO ALLOC VERTS" << std::endl;
     if(normals == NULL) std::cout << "FAILED TO ALLOC NORMALS" << std::endl;
     if(texcoords == NULL) std::cout << "FAILED TO ALLOC TEXCOORDS" << std::endl;
+
     
     for(std::vector<unsigned> v : vecf) {
         for(int i = 0; i < 3; i++) {
             int vertexPointer = v[i] - 1;
             indices.push_back(vertexPointer);
 
+            // std::cout << vertexPointer << " " << vecv.size() << std::endl;
+
             glm::vec3 currentVert = vecv[vertexPointer];
             vertices[vertexPointer * 3] = currentVert[0];
             vertices[vertexPointer * 3 + 1] = currentVert[1];
             vertices[vertexPointer * 3 + 2] = currentVert[2];
+
+            // std::cout << vertexPointer << " " << vecv.size() << std::endl;
 
             if(vect.size() > 0) {
                 glm::vec2 currentTex = vect[v[6 + i] - 1];
@@ -219,13 +241,17 @@ void Object::loadFromObj(char* filename) {
                 texcoords[vertexPointer * 2 + 1] = currentTex[1];   
             }
 
+            // std::cout << vertexPointer << " " << vect.size() << std::endl;
+
             glm::vec3 currentNorm;
+            // std::cout << v[3+i] << std::endl;
             if(v[3 + i] != -1) {
                 currentNorm = vecn[v[3 + i] - 1];
             }
             else {
                 currentNorm = glm::normalize(-glm::cross(vecv[v[1] - 1] - vecv[v[0] - 1], vecv[v[2] - 1] - vecv[v[0] - 1]));
             }
+
             normals[vertexPointer * 3] = currentNorm[0];
             normals[vertexPointer * 3 + 1] = currentNorm[1];
             normals[vertexPointer * 3 + 2] = currentNorm[2];
@@ -234,7 +260,7 @@ void Object::loadFromObj(char* filename) {
     
     nIndices = indices.size();
     nVertices = vecv.size();
-    
+
     glGenBuffers(1, &verticesVBO);
     glGenBuffers(1, &normalsVBO);
     if(vect.size() > 0) {
@@ -321,7 +347,7 @@ void Object::draw() {
         std::cout << "Error in Object::draw 2: " << err << std::endl;
     }
     if(hasTextures) glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
+    // glEnableVertexAttribArray(2);
 
     // GLenum err;
     while((err = glGetError()) != GL_NO_ERROR)
@@ -346,7 +372,7 @@ void Object::draw() {
 
     while((err = glGetError()) != GL_NO_ERROR)
     {
-        std::cout << "Error in Object::draw 5: " << err << std::endl;
+        std::cout << "Error in Object::draw 5: " << err << " ----- " << nIndices << std::endl;
     }
 
     glDisableVertexAttribArray(2);

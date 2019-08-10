@@ -64,6 +64,7 @@ bool Shader::compile() {
 
     lightDirectionLocation = getUniformLocation("lightDirection");
     lightColorLocation = getUniformLocation("lightColor");
+    centerLocation = getUniformLocation("center");
     shineDamperLocation = getUniformLocation("shineDamper");
     reflectivityLocation = getUniformLocation("reflectivity");
     hasNormalMapLocation = getUniformLocation("hasNormalMap");
@@ -79,6 +80,11 @@ bool Shader::compile() {
 
 void Shader::bindAttribute(int attrib, const char* variableName) {
     glBindAttribLocation(program, attrib, variableName);
+}
+
+void Shader::loadCenterBowl(glm::vec3 position) {
+    std::cout << position[0] << position[1] << position[2] << std::endl;
+    glUniform3fv(centerLocation, 1, &position[0]);
 }
 
 void Shader::loadModelMatrix(glm::mat4 matrix) {

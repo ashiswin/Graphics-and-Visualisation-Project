@@ -13,14 +13,17 @@ class Object {
         void loadVertices(float* vertices, unsigned int* indices, int nVertices, int nIndices);
         void loadVertices(float* vertices, float* texcoords, float* normals, int* indices, int nVertices, int nIndices);
         void loadFromObj(char* filename);
+        void loadFromImage(char* filename);
         void setShader(Shader* shader);
         Shader* getShader();
         void setTexture(Texture* texture);
         void setNormalMap(Texture* normals);
+        void generateGeometry();
 
         void draw();
         void spin();
         void scale(int val);
+        void move(float dx, float dy, float dz);
         
     private:
         GLuint verticesVBO;

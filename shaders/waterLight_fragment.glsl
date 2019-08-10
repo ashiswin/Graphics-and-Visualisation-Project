@@ -11,5 +11,5 @@ void main(void) {
     vec4 reflectColor = texture(reflectionTexture, pass_texCoords);
     vec4 refractColor = texture(refractionTexture, pass_texCoords);
 
-    frag_color = mix(reflectColor, refractColor, 0);
+    frag_color = mix(reflectColor, refractColor, 0.5);
 }

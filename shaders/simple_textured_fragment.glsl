@@ -10,4 +10,5 @@ void main() {
     vec4 texel = texture(textureSampler, vec2(pass_texCoords.x, -pass_texCoords.y));
 
     frag_colour = texel;
+    // frag_colour = vec4(1, 1, 1, 1);
 }

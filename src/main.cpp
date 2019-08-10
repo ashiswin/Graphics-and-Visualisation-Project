@@ -5,12 +5,14 @@
 #include <iostream>
 #include <time.h>
 #include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <object.h>
 #include <texture.h>
 #include <shader.h>
 #include <camera.h>
+#include <terrain.h>
 #include <light.h>
 #include <fbo.h>
 #include <heightfield.h>
@@ -32,10 +34,12 @@ GLuint reflectionLocation, refractionLocation, planeLocation;
 Object *quad;
 // Object *skybox;
 Object *plane;
+Terrain *terrain;
+Object *terrainObj;
 
 Camera *camera, *reflectCamera, *refractCamera;
 DirectionalLight *light;
-// Texture *texture, *normals;
+Texture *terrainTexture;
 
 FBO *fbo, *reflectFBO, *refractFBO;
 Heightfield *water;
@@ -43,8 +47,6 @@ LightMesh *lightMesh;
 Skybox *skybox;
 
 glm::mat4 projectionMatrix;
-
-Texture *skyboxTexture;
 
 float vertices[] = {
     -1, 1, 0,
@@ -191,15 +193,6 @@ void testHeightfield() {
         std::cout << "Error in Object::thf 0: " << err << std::endl;
     }
     
-    // firstPass->attach();
-    // firstPass->loadProjectionMatrix(projectionMatrix);
-    // firstPass->loadViewMatrix(camera->getViewMatrix());
-
-    // plane->setShader(firstPass);
-    // plane->draw();
-
-    // firstPass->detach();
-    
     while((err = glGetError()) != GL_NO_ERROR)
     {
         std::cout << "Error in Object::thf 1: " << err << std::endl;
@@ -226,10 +219,18 @@ void testHeightfield() {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    skybox->setClippingPlane(glm::vec4(0, -1, 0, 1));
-    skybox->draw(projectionMatrix, camera->getViewMatrix());
-    skybox->disableClippingPlane();
+    // skybox->setClippingPlane(glm::vec4(0, -1, 0, 1));
+    // skybox->draw(projectionMatrix, camera->getViewMatrix());
+    // skybox->disableClippingPlane();
     
+    // firstPass->attach();
+    // firstPass->loadProjectionMatrix(projectionMatrix);
+    // firstPass->loadViewMatrix(camera->getViewMatrix());
+    // firstPass->enableTexture();
+    // bowl->setShader(firstPass);
+    // bowl->draw();
+    // firstPass->detach();    
+
     // firstPass->attach();
     // firstPass->loadProjectionMatrix(projectionMatrix);
     // firstPass->loadViewMatrix(camera->getViewMatrix());
@@ -260,6 +261,39 @@ void testHeightfield() {
     refractFBO->unbindColorTexture();
     
     waterShader->detach();
+
+    FBO *caustics = lightMesh->draw(projectionMatrix, camera, light);
+
+    secondPass->attach();
+    secondPass->loadProjectionMatrix(projectionMatrix);
+    secondPass->loadViewMatrix(camera->getViewMatrix());
+    secondPass->enableTexture();
+
+    caustics->bindColorTexture(GL_TEXTURE0);
+
+    // float pixels[200 * 200 * 3];
+    // glReadPixels(0, 0, 200, 200, GL_RGB, GL_FLOAT, pixels);
+    // for(int i = 0; i < 200; i++) {
+    //     for(int j = 0; j < 200; j++) {
+    //         std::cout << "(";
+    //         for(int k = 0; k < 3; k++) {
+    //             std::cout << pixels[(i * (200 * 3)) + (j * 3) + k] << ",";
+    //         }
+    //         std::cout << ") ";
+    //     }
+    //     std::cout << std::endl;
+    // }
+
+    terrainObj->setShader(secondPass);
+    terrainObj->draw();
+    secondPass->detach();    
+
+    secondPass->attach();
+    secondPass->loadProjectionMatrix(projectionMatrix);
+    secondPass->loadViewMatrix(camera->getViewMatrix());
+
+    secondPass->detach();
+    caustics->unbindColorTexture();
 
     glutSwapBuffers();
 }
@@ -313,7 +347,7 @@ int main(int argc, char* argv[]) {
     water = new Heightfield(WIDTH, HEIGHT);
     lightMesh = new LightMesh(200);
     skybox = new Skybox();
-
+    
     plane = new Object();
     plane->loadVertices(pvertices, texcoords, pnormals, indices, 4, 6);
 
@@ -338,7 +372,10 @@ int main(int argc, char* argv[]) {
     heightLocation = waterShader->getUniformLocation("height");
     reflectionLocation = waterShader->getUniformLocation("reflectionTexture");
     refractionLocation = waterShader->getUniformLocation("refractionTexture");
-    
+    while((err = glGetError()) != GL_NO_ERROR)
+    {
+        std::cout << "Error in Object::main: " << err << std::endl;
+    }
     // Objects for testing FBO
 
     secondPass = new Shader();
@@ -347,15 +384,6 @@ int main(int argc, char* argv[]) {
     if(!secondPass->compile()) std::cout << "Error compiling second pass shader!" << std::endl;
 
     planeLocation = secondPass->getUniformLocation("plane");
-    
-    // skybox = new Object();
-    // skyboxTexture = new Texture();
-    // skyboxTexture->loadFromFile("assets/textures/env.jpg");
-
-    // skybox->loadFromObj("assets/sphere.obj");
-    // skybox->setShader(secondPass);
-    // skybox->setTexture(skyboxTexture);
-    // skybox->scale(100);
 
     quad = new Object();
     quad->loadVertices(vertices, texcoords, normals, indices, 4, 6);
@@ -364,7 +392,13 @@ int main(int argc, char* argv[]) {
     reflectFBO = new FBO(800, 600);
     refractFBO = new FBO(800, 600);
 
-    
+    terrain = new Terrain(100);
+    terrainObj = terrain->generateGeometry();
+    terrainObj->scale(20);
+    terrainObj->move(-0.5, -0.5, -0.5);
+    glm::vec3 position = glm::vec3(120, -3, -100);
+    firstPass->loadCenterBowl(position);
+    terrainObj->setShader(secondPass);
 
     glutKeyboardFunc(&keyPressed);
     glutMouseFunc(&mousePressed);

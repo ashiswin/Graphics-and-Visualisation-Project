@@ -1,10 +1,24 @@
+#include <GL/glew.h>
+#include <OpenGL/gl3.h>
+#include <GLUT/glut.h>
+#include <stdio.h>
 #include <iostream>
-#include <vector>
+#include <time.h>
+#include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
-#include <lightmesh.h>
 #include <object.h>
+#include <texture.h>
 #include <shader.h>
+#include <camera.h>
+#include <terrain.h>
+#include <vector>
+#include <light.h>
 #include <fbo.h>
+#include <heightfield.h>
+#include <lightmesh.h>
+#include <skybox.h>
 
 LightMesh::LightMesh(int detail) {
     this->detail = detail;
@@ -61,4 +75,21 @@ void LightMesh::prepareShaders() {
     std::cout << "Compiling caustic fragment shader..." << std::endl;
     causticShader->attachShader(GL_FRAGMENT_SHADER, "shaders/caustics_fragment.glsl");
     if(!causticShader->compile()) std::cout << "Error compiling caustic shader!" << std::endl;
+}
+
+FBO *LightMesh::draw(glm::mat4 projectionMatrix, Camera *camera, DirectionalLight *light) {
+
+    caustics->bind();
+    causticShader->attach();
+    causticShader->loadProjectionMatrix(projectionMatrix);
+    causticShader->loadViewMatrix(camera->getViewMatrix());
+    // causticShader->loadLight(light);
+
+    plane->setShader(causticShader);
+    plane->draw();
+
+    caustics->unbind();
+    causticShader->detach();
+
+    return caustics;
 }

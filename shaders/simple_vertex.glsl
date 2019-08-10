@@ -2,7 +2,7 @@
 
 in vec3 position;
 in vec2 texCoords;
-in vec3 normals;
+in vec3 normal;
 
 out vec2 pass_texCoords;
 
@@ -17,5 +17,5 @@ void main() {
   gl_Position = projectionMatrix * viewMatrix * worldPosition;
   gl_ClipDistance[0] = dot(worldPosition, plane);
   
-  pass_texCoords = texCoords;
+  pass_texCoords = position.xz;
 }

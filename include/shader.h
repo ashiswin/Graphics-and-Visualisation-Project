@@ -16,6 +16,7 @@ class Shader {
         void loadViewMatrix(glm::mat4 matrix);
         void loadSpecularComponents(float shineDamper, float reflectivity);
         void loadLight(DirectionalLight *light);
+        void loadCenterBowl(glm::vec3 position);
         void enableTexture();
         void enableNormalMap();
         void attach();
@@ -38,6 +39,7 @@ class Shader {
         int hasNormalMapLocation;
         int normalMapLocation;
         int textureLocation;
+        int centerLocation;
 
         int reflectionTexLocation;
         int refractionTexLocation;

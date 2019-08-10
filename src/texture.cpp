@@ -16,6 +16,7 @@ void Texture::loadFromFile(char* filename) {
     std::cout << "Loaded texture " << filename << " with size " << width << "x" << height << std::endl;
 
     glBindTexture(GL_TEXTURE_2D, textureId);
+    std::cout << n << std::endl;
     if(n == 3) glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_FLOAT, data);
     if(n == 4) glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, data);
     glGenerateMipmap(GL_TEXTURE_2D);

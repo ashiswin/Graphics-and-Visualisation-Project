@@ -8,6 +8,7 @@ class FBO;
 class LightMesh {
     public:
         LightMesh(int detail);
+        FBO *draw(glm::mat4 projectionMatrix, Camera *camera, DirectionalLight *light);
     
     private:
         int detail;
