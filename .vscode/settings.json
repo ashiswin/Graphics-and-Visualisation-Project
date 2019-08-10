@@ -39,6 +39,29 @@
         "functional": "cpp",
         "iterator": "cpp",
         "random": "cpp",
-        "iomanip": "cpp"
-    }
+        "iomanip": "cpp",
+        "__split_buffer": "cpp",
+        "string": "cpp",
+        "__bit_reference": "cpp",
+        "__config": "cpp",
+        "__debug": "cpp",
+        "__errc": "cpp",
+        "__functional_base": "cpp",
+        "__locale": "cpp",
+        "__mutex_base": "cpp",
+        "__nullptr": "cpp",
+        "__string": "cpp",
+        "__threading_support": "cpp",
+        "__tuple": "cpp",
+        "atomic": "cpp",
+        "bitset": "cpp",
+        "chrono": "cpp",
+        "ctime": "cpp",
+        "ios": "cpp",
+        "locale": "cpp",
+        "memory": "cpp",
+        "mutex": "cpp",
+        "ratio": "cpp"
+    },
+    "C_Cpp.dimInactiveRegions": false
 }
