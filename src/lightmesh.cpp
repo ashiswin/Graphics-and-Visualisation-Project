@@ -80,6 +80,8 @@ void LightMesh::prepareShaders() {
 FBO *LightMesh::draw(glm::mat4 projectionMatrix, Camera *camera, DirectionalLight *light) {
 
     caustics->bind();
+    glClear(GL_COLOR_BUFFER_BIT);
+
     causticShader->attach();
     causticShader->loadProjectionMatrix(projectionMatrix);
     causticShader->loadViewMatrix(camera->getViewMatrix());
@@ -87,6 +89,20 @@ FBO *LightMesh::draw(glm::mat4 projectionMatrix, Camera *camera, DirectionalLigh
 
     plane->setShader(causticShader);
     plane->draw();
+
+
+    float pixels[200 * 200 * 3];
+    glReadPixels(0, 0, 200, 200, GL_RGB, GL_FLOAT, pixels);
+    for(int i = 0; i < 200; i++) {
+        for(int j = 0; j < 200; j++) {
+            std::cout << "(";
+            for(int k = 0; k < 3; k++) {
+                std::cout << pixels[(i * (200 * 3)) + (j * 3) + k] << ",";
+            }
+            std::cout << ") ";
+        }
+        std::cout << std::endl;
+    }
 
     caustics->unbind();
     causticShader->detach();
