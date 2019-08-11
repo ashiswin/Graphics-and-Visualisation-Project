@@ -8,6 +8,7 @@ in vec3 position;
 out vec3 regularPosition;
 out vec3 newPosition;
 out vec3 rayDirection;
+out vec2 pass_texCoords;
 
 uniform vec3 lightDirection;
 uniform vec3 lightColor;
@@ -34,7 +35,10 @@ vec3 project(vec3 origin, vec3 ray, vec3 refractedLight) {
 }
 
 void main() {
-    vec4 texel = texture(textureSampler, vec2(position.x, position.y));
+    vec2 texcoords = (vec2(position.x, position.y) + 1) * 0.5;
+    pass_texCoords = texcoords;
+    
+    vec4 texel = texture(textureSampler, texcoords);
 
     vec3 normal = normalize(vec3(texel.b, sqrt(1.0 - dot(texel.ba, texel.ba)), texel.a));
     

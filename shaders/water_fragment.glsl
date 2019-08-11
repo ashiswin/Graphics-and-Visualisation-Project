@@ -47,12 +47,12 @@ void main() {
   
   float distance = sqrt(pow(position_out[0] - (+127.0), 2) + pow(position_out[1] - (0.0), 2) + pow(position_out[2] - (-180.0), 2));
   
-  if (distance < 60.0) {
+  // if (distance < 60.0) {
     frag_colour = mix(reflectColor, refractColor, dot(normalize(toCameraVector), vec3(0, 1, 0)));
     // frag_colour = mix(reflectColor, refractColor, 0.1);
     // frag_colour = reflectColor;
-  }
-  else {
-    discard;
-  }
+  // }
+  // else {
+    // discard;
+  // }
 }

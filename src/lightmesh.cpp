@@ -7,6 +7,7 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 #include <object.h>
 #include <texture.h>
@@ -20,6 +21,32 @@
 #include <lightmesh.h>
 #include <skybox.h>
 
+float wvertices[] = {
+    -1, 1, 0,
+    1, 1, 0,
+    1, -1, 0,
+    -1, -1, 0
+};
+
+float wtexcoords[] = {
+    0, 0,
+    1, 0,
+    1, 1,
+    0, 1
+};
+
+float wnormals[] = {
+    0, 0, 1,
+    0, 0, 1,
+    0, 0, 1,
+    0, 0, 1
+};
+
+int windices[] = {
+    0, 1, 3,
+    1, 2, 3
+};
+
 LightMesh::LightMesh(int detail) {
     this->detail = detail;
     
@@ -32,9 +59,10 @@ void LightMesh::generateGeometry() {
     std::vector<glm::vec3> vertices;
     std::vector<unsigned> indices;
 
-    for(int i = 0; i < detail; i++) {
-        for(int j = 0; j < detail; j++) {
-            vertices.push_back(glm::vec3(i / (float) detail, j / (float) detail, 0));
+    for(int i = 0; i <= detail; i++) {
+        for(int j = 0; j <= detail; j++) {
+            vertices.push_back(glm::vec3((j / (float) detail) * 2 - 1, (i / (float) detail) * 2 - 1, 0));
+            std::cout << glm::to_string(glm::vec3((j / (float) detail) * 2 - 1, (i / (float) detail) * 2 - 1, 0)) << std::endl;
 
             if(i == 0 || j == 0) continue;
 
@@ -63,6 +91,7 @@ void LightMesh::generateGeometry() {
 
     plane = new Object();
     plane->loadVertices(vertexArray, &indices[0], vertices.size(), indices.size());
+    // plane->loadVertices(wvertices, wtexcoords, wnormals, windices, 4, 6);
 }
 
 void LightMesh::prepareBuffers() {
@@ -91,18 +120,18 @@ FBO *LightMesh::draw(glm::mat4 projectionMatrix, Camera *camera, DirectionalLigh
     plane->setShader(causticShader);
     plane->draw();
 
-    float pixels[200 * 200 * 3];
-    glReadPixels(0, 0, 200, 200, GL_RGB, GL_FLOAT, pixels);
-    for(int i = 0; i < 200; i++) {
-        for(int j = 0; j < 200; j++) {
-            std::cout << "(";
-            for(int k = 0; k < 3; k++) {
-                std::cout << pixels[(i * (200 * 3)) + (j * 3) + k] << ",";
-            }
-            std::cout << ") ";
-        }
-        std::cout << std::endl;
-    }
+    // float pixels[200 * 200 * 3];
+    // glReadPixels(0, 0, 200, 200, GL_RGB, GL_FLOAT, pixels);
+    // for(int i = 0; i < 200; i++) {
+    //     for(int j = 0; j < 200; j++) {
+    //         std::cout << "(";
+    //         for(int k = 0; k < 3; k++) {
+    //             std::cout << pixels[(i * (200 * 3)) + (j * 3) + k] << ",";
+    //         }
+    //         std::cout << ") ";
+    //     }
+    //     std::cout << std::endl;
+    // }
 
     caustics->unbind();
     causticShader->detach();
