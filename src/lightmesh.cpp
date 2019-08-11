@@ -34,7 +34,7 @@ void LightMesh::generateGeometry() {
 
     for(int i = 0; i < detail; i++) {
         for(int j = 0; j < detail; j++) {
-            vertices.push_back(glm::vec3(i / (float) detail, 0, -j / (float) detail));
+            vertices.push_back(glm::vec3(i / (float) detail, j / (float) detail, 0));
 
             if(i == 0 || j == 0) continue;
 
@@ -80,13 +80,29 @@ void LightMesh::prepareShaders() {
 FBO *LightMesh::draw(glm::mat4 projectionMatrix, Camera *camera, DirectionalLight *light) {
 
     caustics->bind();
+    glClear(GL_COLOR_BUFFER_BIT);
+    
     causticShader->attach();
-    causticShader->loadProjectionMatrix(projectionMatrix);
-    causticShader->loadViewMatrix(camera->getViewMatrix());
-    // causticShader->loadLight(light);
+    // causticShader->loadProjectionMatrix(projectionMatrix);
+    // causticShader->loadViewMatrix(camera->getViewMatrix());
+    causticShader->loadLight(light);
+    causticShader->enableTexture();
 
     plane->setShader(causticShader);
     plane->draw();
+
+    float pixels[200 * 200 * 3];
+    glReadPixels(0, 0, 200, 200, GL_RGB, GL_FLOAT, pixels);
+    for(int i = 0; i < 200; i++) {
+        for(int j = 0; j < 200; j++) {
+            std::cout << "(";
+            for(int k = 0; k < 3; k++) {
+                std::cout << pixels[(i * (200 * 3)) + (j * 3) + k] << ",";
+            }
+            std::cout << ") ";
+        }
+        std::cout << std::endl;
+    }
 
     caustics->unbind();
     causticShader->detach();

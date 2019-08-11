@@ -305,3 +305,11 @@ void Heightfield::swapBuffers() {
     heightA = heightB;
     heightB = temp;
 }
+
+void Heightfield::bindNormalMap() {
+    heightA->bindColorTexture(GL_TEXTURE0);
+}
+
+void Heightfield::unbindNormalMap() {
+    heightA->unbindColorTexture();
+}

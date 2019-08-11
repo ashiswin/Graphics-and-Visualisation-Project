@@ -262,8 +262,9 @@ void testHeightfield() {
     
     waterShader->detach();
 
+    water->bindNormalMap();
     FBO *caustics = lightMesh->draw(projectionMatrix, camera, light);
-
+    water->unbindNormalMap();
     secondPass->attach();
     secondPass->loadProjectionMatrix(projectionMatrix);
     secondPass->loadViewMatrix(camera->getViewMatrix());
@@ -271,28 +272,15 @@ void testHeightfield() {
 
     caustics->bindColorTexture(GL_TEXTURE0);
 
-    // float pixels[200 * 200 * 3];
-    // glReadPixels(0, 0, 200, 200, GL_RGB, GL_FLOAT, pixels);
-    // for(int i = 0; i < 200; i++) {
-    //     for(int j = 0; j < 200; j++) {
-    //         std::cout << "(";
-    //         for(int k = 0; k < 3; k++) {
-    //             std::cout << pixels[(i * (200 * 3)) + (j * 3) + k] << ",";
-    //         }
-    //         std::cout << ") ";
-    //     }
-    //     std::cout << std::endl;
-    // }
-
     terrainObj->setShader(secondPass);
     terrainObj->draw();
-    secondPass->detach();    
+    // secondPass->detach();    
 
-    secondPass->attach();
-    secondPass->loadProjectionMatrix(projectionMatrix);
-    secondPass->loadViewMatrix(camera->getViewMatrix());
+    // secondPass->attach();
+    // secondPass->loadProjectionMatrix(projectionMatrix);
+    // secondPass->loadViewMatrix(camera->getViewMatrix());
 
-    secondPass->detach();
+    // secondPass->detach();
     caustics->unbindColorTexture();
 
     glutSwapBuffers();

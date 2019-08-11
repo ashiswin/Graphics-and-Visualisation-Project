@@ -17,6 +17,8 @@ class Heightfield {
         void stepSimulation();
         void calculateNormals();
         void connectTexture();
+        void bindNormalMap();
+        void unbindNormalMap();
 
     private:
         FBO *heightA; // for reading height data

@@ -34,14 +34,16 @@ vec3 project(vec3 origin, vec3 ray, vec3 refractedLight) {
 }
 
 void main() {
-    vec4 texel = texture(textureSampler, vec2(position.x / width, position.z / height));
+    vec4 texel = texture(textureSampler, vec2(position.x, position.y));
 
     vec3 normal = normalize(vec3(texel.b, sqrt(1.0 - dot(texel.ba, texel.ba)), texel.a));
     
     vec3 plainRefraction = refract(lightDirection, vec3(0.0, 1.0, 0.0), AIR / WATER);
     vec3 warpedRefraction = refract(lightDirection, normal, AIR / WATER);
 
-    regularPosition = project(position, plainRefraction, plainRefraction);
-    newPosition = project(position + vec3(0.0, texel.r, 0.0), warpedRefraction, plainRefraction);
+    regularPosition = project(position.xzy, plainRefraction, plainRefraction);
+    newPosition = project(position.xzy + vec3(0.0, texel.r, 0.0), warpedRefraction, plainRefraction);
     rayDirection = warpedRefraction;
+
+    gl_Position = vec4(position, 1.0);
 }
