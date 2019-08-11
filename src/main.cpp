@@ -19,8 +19,8 @@
 #include <lightmesh.h>
 #include <skybox.h>
 
-#define WIDTH 256
-#define HEIGHT 256
+#define WIDTH 100
+#define HEIGHT 100
 
 // Shader *shader;
 // Shader *simple, *simple_tex;
@@ -274,13 +274,8 @@ void testHeightfield() {
 
     terrainObj->setShader(secondPass);
     terrainObj->draw();
-    // secondPass->detach();    
+    secondPass->detach();    
 
-    // secondPass->attach();
-    // secondPass->loadProjectionMatrix(projectionMatrix);
-    // secondPass->loadViewMatrix(camera->getViewMatrix());
-
-    // secondPass->detach();
     caustics->unbindColorTexture();
 
     glutSwapBuffers();

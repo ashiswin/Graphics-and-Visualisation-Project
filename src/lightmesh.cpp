@@ -59,10 +59,10 @@ void LightMesh::generateGeometry() {
     std::vector<glm::vec3> vertices;
     std::vector<unsigned> indices;
 
-    for(int i = 0; i <= detail; i++) {
-        for(int j = 0; j <= detail; j++) {
+    for(int i = 0; i < detail; i++) {
+        for(int j = 0; j < detail; j++) {
             vertices.push_back(glm::vec3((j / (float) detail) * 2 - 1, (i / (float) detail) * 2 - 1, 0));
-            std::cout << glm::to_string(glm::vec3((j / (float) detail) * 2 - 1, (i / (float) detail) * 2 - 1, 0)) << std::endl;
+            // std::cout << glm::to_string(glm::vec3((j / (float) detail) * 2 - 1, (i / (float) detail) * 2 - 1, 0)) << std::endl;
 
             if(i == 0 || j == 0) continue;
 
@@ -95,7 +95,7 @@ void LightMesh::generateGeometry() {
 }
 
 void LightMesh::prepareBuffers() {
-    caustics = new FBO(detail, detail);
+    caustics = new FBO(800, 600);
 }
 void LightMesh::prepareShaders() {
     causticShader = new Shader();
@@ -109,7 +109,7 @@ void LightMesh::prepareShaders() {
 FBO *LightMesh::draw(glm::mat4 projectionMatrix, Camera *camera, DirectionalLight *light) {
 
     caustics->bind();
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     causticShader->attach();
     // causticShader->loadProjectionMatrix(projectionMatrix);
@@ -120,13 +120,15 @@ FBO *LightMesh::draw(glm::mat4 projectionMatrix, Camera *camera, DirectionalLigh
     plane->setShader(causticShader);
     plane->draw();
 
-    // float pixels[200 * 200 * 3];
-    // glReadPixels(0, 0, 200, 200, GL_RGB, GL_FLOAT, pixels);
-    // for(int i = 0; i < 200; i++) {
-    //     for(int j = 0; j < 200; j++) {
+    int causticDetail = 835;
+
+    // float pixels[causticDetail * causticDetail * 3];
+    // glReadPixels(0, 0, causticDetail, causticDetail, GL_RGB, GL_FLOAT, pixels);
+    // for(int i = 0; i < causticDetail; i++) {
+    //     for(int j = 0; j < causticDetail; j++) {
     //         std::cout << "(";
     //         for(int k = 0; k < 3; k++) {
-    //             std::cout << pixels[(i * (200 * 3)) + (j * 3) + k] << ",";
+    //             std::cout << pixels[(i * (causticDetail * 3)) + (j * 3) + k] << ",";
     //         }
     //         std::cout << ") ";
     //     }

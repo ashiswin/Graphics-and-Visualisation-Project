@@ -9,6 +9,7 @@ out vec3 regularPosition;
 out vec3 newPosition;
 out vec3 rayDirection;
 out vec2 pass_texCoords;
+out vec2 pass_position;
 
 uniform vec3 lightDirection;
 uniform vec3 lightColor;
@@ -35,9 +36,9 @@ vec3 project(vec3 origin, vec3 ray, vec3 refractedLight) {
 }
 
 void main() {
-    vec2 texcoords = (vec2(position.x, position.y) + 1) * 0.5;
+    vec2 texcoords = vec2((position.x + 1) / 2, (position.y + 1) / 2);
     pass_texCoords = texcoords;
-    
+
     vec4 texel = texture(textureSampler, texcoords);
 
     vec3 normal = normalize(vec3(texel.b, sqrt(1.0 - dot(texel.ba, texel.ba)), texel.a));
@@ -49,5 +50,8 @@ void main() {
     newPosition = project(position.xzy + vec3(0.0, texel.r, 0.0), warpedRefraction, plainRefraction);
     rayDirection = warpedRefraction;
 
-    gl_Position = vec4(position, 1.0);
+    // gl_Position = vec4(0.75 * (newPosition.xz + plainRefraction.xz / plainRefraction.y), 0.0, 1.0);
+    gl_Position = vec4(position, 1);
+    pass_position = gl_Position.xy;
+    // pass_position = 0.75 * (newPosition.xz + plainRefraction.xz / plainRefraction.y);
 }
