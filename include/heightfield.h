@@ -15,7 +15,7 @@ class Object;
 
 class Heightfield {
     public:
-        Heightfield(int detail);
+        Heightfield(int detail, float scale);
         void draw(Shader* shader);
         void addHeight(float amount, glm::vec2 location);
         void lightShading(FBO *reflectFBO, FBO *refractFBO);

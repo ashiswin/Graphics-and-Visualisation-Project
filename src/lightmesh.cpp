@@ -97,6 +97,7 @@ void LightMesh::generateGeometry() {
 
     plane = new Object();
     plane->loadVertices(vertexArray, &indices[0], vertices.size(), indices.size());
+    plane->scale(2);
     // plane->loadVertices(wvertices, wtexcoords, wnormals, windices, 4, 6);
 }
 

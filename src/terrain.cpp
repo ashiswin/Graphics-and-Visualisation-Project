@@ -44,6 +44,6 @@ Object * Terrain::generateGeometry() {
 
     plane = new Object();
     plane->loadVertices(vertexArray, &indices[0], vertices.size(), indices.size());
-    
+    plane->scale(2);
     return plane;
 }

@@ -35,11 +35,11 @@ int qindices[] = {
     1, 2, 3
 };
 
-Heightfield::Heightfield(int detail) {
-    this->detail = detail;
+Heightfield::Heightfield(int detail, float scale) {
+    this->detail = detail * scale;
     
     this->modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0.2, 0));
-
+    this->modelMatrix = glm::scale(this->modelMatrix, glm::vec3(scale, 1, scale));
     prepareBuffers();
     prepareShaders();
     generateGeometry();

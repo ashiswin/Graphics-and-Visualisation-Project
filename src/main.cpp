@@ -30,9 +30,6 @@
 #define WINDOW_WIDTH 1920
 #define WINDOW_HEIGHT 1080
 
-// Shader *shader;
-// Shader *simple, *simple_tex;
-
 Shader *firstPass;
 Shader *secondPass;
 Shader *waterShader;
@@ -102,11 +99,13 @@ int indices[] = {
 
 bool mouseHeld;
 int prevY = -1;
+int prevX = -1;
 
 void mousePressed(int button, int state, int x, int y) {
     if(button == 0) {
         mouseHeld = state == 0;
         prevY = y;
+        prevX = x;
     }
 }
 
@@ -119,35 +118,33 @@ void mouseMoved(int x, int y) {
             camera->rotate(-1, 0, 0);
         }
         prevY = y;
+
+        if(x - prevX > 0) {
+            camera->rotate(0, 1, 0);
+        }
+        else if(x - prevX < 0){
+            camera->rotate(0, -1, 0);
+        }
+        prevX = x;
     }
 }
 
 void keyPressed(unsigned char c, int x, int y) {
     switch(c) {
         case 'w':
-            camera->move(0, 1, 0);
-            // refractCamera->move(0, 1, 0);
-            reflectCamera->move(0, -1, 0);
+            camera->move(0, .1, 0);
             break;
         case 'd':
-            camera->move(1, 0, 0);
-            // refractCamera->move(1, 0, 0);
-            reflectCamera->move(1, 0, 0);
+            camera->move(.1, 0, 0);
             break;
         case 'a':
-            camera->move(-1, 0, 0);
-            // refractCamera->move(-1, 0, 0);
-            reflectCamera->move(-1, 0, 0);
+            camera->move(-.1, 0, 0);
             break;
         case 's':
-            camera->move(0, -1, 0);
-            // refractCamera->move(0, -1, 0);
-            reflectCamera->move(0, 1, 0);
+            camera->move(0, -.1, 0);
             break;
         case 'v':
-            // water->addHeight(10.0, glm::vec2(WIDTH / 2, HEIGHT / 2));
-            // water->addHeight(0.1 + rand() % 20, glm::vec2(rand() % WIDTH, rand() % HEIGHT));
-            water->addHeight(0.1 + rand()%1, glm::vec2(rand() % WIDTH, rand() % HEIGHT));
+            water->addHeight(0.1 + rand()%1, glm::vec2(rand() % DETAIL, rand() % DETAIL));
             break;
         case 'c':
             water->stepSimulation();
@@ -221,6 +218,11 @@ void testHeightfield() {
 
     // Render reflection
     reflectFBO->bind();
+    #ifdef __APPLE__
+        glViewport(0, 0, 800, 600);
+    #else
+        glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    #endif
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
@@ -233,6 +235,11 @@ void testHeightfield() {
 
     // Render refraction
     refractFBO->bind();
+    #ifdef __APPLE__
+        glViewport(0, 0, 800, 600);
+    #else
+        glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    #endif
 
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -344,6 +351,8 @@ int main(int argc, char* argv[]) {
         glutInitContextFlags (GLUT_CORE_PROFILE | GLUT_DEBUG);
         glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         glutCreateWindow("OpenGL 4.1");
+        glutFullScreen();
+        glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
     #endif
     
     glewExperimental = GL_TRUE;
@@ -372,8 +381,8 @@ int main(int argc, char* argv[]) {
     
     projectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 1000.0f);
 
-    water = new Heightfield(DETAIL);
-    lightMesh = new LightMesh(500);
+    water = new Heightfield(DETAIL, 2);
+    lightMesh = new LightMesh(1000);
     skybox = new Skybox();
     
     plane = new Object();
@@ -424,9 +433,15 @@ int main(int argc, char* argv[]) {
     quad = new Object();
     quad->loadVertices(vertices, texcoords, normals, indices, 4, 6);
 
-    fbo = new FBO(800, 600);
-    reflectFBO = new FBO(800, 600);
-    refractFBO = new FBO(800, 600);
+    #ifdef __APPLE__
+        fbo = new FBO(800, 600);
+        reflectFBO = new FBO(800, 600);
+        refractFBO = new FBO(800, 600);
+    #else
+        fbo = new FBO(WINDOW_WIDTH, WINDOW_HEIGHT);
+        reflectFBO = new FBO(WINDOW_WIDTH, WINDOW_HEIGHT);
+        refractFBO = new FBO(WINDOW_WIDTH, WINDOW_HEIGHT);
+    #endif
 
     terrain = new Terrain(1000);
     terrainObj = terrain->generateGeometry();

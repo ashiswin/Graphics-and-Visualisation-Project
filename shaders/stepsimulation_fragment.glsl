@@ -31,7 +31,7 @@ void main() {
     averageHt = averageHt * 0.125;
 
     texel.g += (averageHt - texel.r) * 2;
-    texel.g *= 0.995;
+    texel.g *= 0.99;
 
     // Step simulation forward
     texel.r += texel.g;
