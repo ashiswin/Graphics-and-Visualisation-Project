@@ -21,14 +21,14 @@ void main() {
 
     averageHt += texture(textureSampler, vec2(x-deltaX, y)).r;
     averageHt += texture(textureSampler, vec2(x+deltaX, y)).r;
-    // averageHt += texture(textureSampler, vec2(x-deltaX, y+deltaY)).r;
-    // averageHt += texture(textureSampler, vec2(x-deltaX, y-deltaY)).r;
-    // averageHt += texture(textureSampler, vec2(x+deltaX, y-deltaY)).r;
-    // averageHt += texture(textureSampler, vec2(x+deltaX, y+deltaY)).r;
+    averageHt += texture(textureSampler, vec2(x-deltaX, y+deltaY)).r;
+    averageHt += texture(textureSampler, vec2(x-deltaX, y-deltaY)).r;
+    averageHt += texture(textureSampler, vec2(x+deltaX, y-deltaY)).r;
+    averageHt += texture(textureSampler, vec2(x+deltaX, y+deltaY)).r;
     averageHt += texture(textureSampler, vec2(x, y+deltaY)).r;
     averageHt += texture(textureSampler, vec2(x, y-deltaY)).r;
 
-    averageHt = averageHt * 0.25;
+    averageHt = averageHt * 0.125;
 
     texel.g += (averageHt - texel.r) * 2;
     texel.g *= 0.995;
