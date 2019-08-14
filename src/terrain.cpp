@@ -5,8 +5,9 @@
 #include <object.h>
 #include <shader.h>
 
-Terrain::Terrain(int detail) {
+Terrain::Terrain(int detail, float scale) {
     this->detail = detail;
+    this->scale = scale;
 }
 
 Object * Terrain::generateGeometry() {
@@ -15,7 +16,7 @@ Object * Terrain::generateGeometry() {
 
     for(int i = 0; i < detail; i++) {
         for(int j = 0; j < detail; j++) {
-            vertices.push_back(glm::vec3(i / (float) detail, 0, -j / (float) detail));
+            vertices.push_back(glm::vec3(i / (float) detail, ((i + j) / 16) / (float) detail - 0.1, -j / (float) detail));
 
             if(i == 0 || j == 0) continue;
 
@@ -44,6 +45,6 @@ Object * Terrain::generateGeometry() {
 
     plane = new Object();
     plane->loadVertices(vertexArray, &indices[0], vertices.size(), indices.size());
-    plane->scale(2);
+    plane->scale(scale);
     return plane;
 }

@@ -11,27 +11,29 @@ void main() {
     float deltaX = 1 / width;
     float deltaY = 1 / height;
 
-    float x = gl_FragCoord.x / width;
-    float y = gl_FragCoord.y / height;
+    vec2 frag = gl_FragCoord.xy + vec2(0.5, 0.5);
+
+    float x = frag.x / width;
+    float y = frag.y / height;
     
     vec4 texel = texture(textureSampler, vec2(x, y));
 
     // Get new velocity
     float averageHt = 0;
 
-    averageHt += texture(textureSampler, vec2(x-deltaX, y)).r;
-    averageHt += texture(textureSampler, vec2(x+deltaX, y)).r;
+    // averageHt += texture(textureSampler, vec2(x-deltaX, y)).r;
+    // averageHt += texture(textureSampler, vec2(x+deltaX, y)).r;
     averageHt += texture(textureSampler, vec2(x-deltaX, y+deltaY)).r;
     averageHt += texture(textureSampler, vec2(x-deltaX, y-deltaY)).r;
     averageHt += texture(textureSampler, vec2(x+deltaX, y-deltaY)).r;
     averageHt += texture(textureSampler, vec2(x+deltaX, y+deltaY)).r;
-    averageHt += texture(textureSampler, vec2(x, y+deltaY)).r;
-    averageHt += texture(textureSampler, vec2(x, y-deltaY)).r;
+    // averageHt += texture(textureSampler, vec2(x, y+deltaY)).r;
+    // averageHt += texture(textureSampler, vec2(x, y-deltaY)).r;
 
-    averageHt = averageHt * 0.125;
+    averageHt = averageHt * 0.25;
 
     texel.g += (averageHt - texel.r) * 2;
-    texel.g *= 0.99;
+    texel.g *= 0.995;
 
     // Step simulation forward
     texel.r += texel.g;

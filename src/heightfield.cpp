@@ -105,7 +105,7 @@ void Heightfield::generateGeometry() {
 
     for(int i = 0; i < detail; i++) {
         for(int j = 0; j < detail; j++) {
-            vertices.push_back(glm::vec3(i / (float) detail, 0, -j / (float) detail));
+            vertices.push_back(glm::vec3(i / (float) detail, ((i + j) / 8) / (float) detail - 0.1, -j / (float) detail));
 
             if(i == 0 || j == 0) continue;
 

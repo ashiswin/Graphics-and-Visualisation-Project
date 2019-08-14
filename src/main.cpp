@@ -30,6 +30,13 @@
 #define WINDOW_WIDTH 1920
 #define WINDOW_HEIGHT 1080
 
+#define HEIGHTFIELD_DETAIL 400
+#define HEIGHTFIELD_SCALE 2
+#define LIGHTMESH_DETAIL 1000
+#define LIGHTMESH_SCALE 2
+#define TERRAIN_DETAIL 1000
+#define TERRAIN_SCALE 2
+
 Shader *firstPass;
 Shader *secondPass;
 Shader *waterShader;
@@ -144,7 +151,7 @@ void keyPressed(unsigned char c, int x, int y) {
             camera->move(0, -.1, 0);
             break;
         case 'v':
-            water->addHeight(0.1 + rand()%1, glm::vec2(rand() % DETAIL, rand() % DETAIL));
+            water->addHeight(0.1 + rand()%1, glm::vec2(rand() % DETAIL*HEIGHTFIELD_SCALE, rand() % DETAIL*HEIGHTFIELD_SCALE));
             break;
         case 'c':
             water->stepSimulation();
@@ -226,10 +233,29 @@ void testHeightfield() {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    // if (camera->getPosition().y >= 0) {
-        skybox->setClippingPlane(glm::vec4(0, 1, 0, 1));
-        skybox->draw(projectionMatrix, reflectCamera->getViewMatrix());
-        skybox->disableClippingPlane();
+    // reflectCamera->position = camera->position;
+    // reflectCamera->position[1] = reflectCamera->position[1];
+    // reflectCamera->pitch = -camera->pitch;
+    
+    skybox->setClippingPlane(glm::vec4(0, 1, 0, 1));
+    skybox->draw(projectionMatrix, reflectCamera->getViewMatrix());
+    skybox->disableClippingPlane();
+
+    // terrainTexture->bind(GL_TEXTURE0);
+
+    // terrainShader->attach();
+    // terrainShader->loadProjectionMatrix(projectionMatrix);
+    // terrainShader->loadViewMatrix(camera->getViewMatrix());
+    // terrainShader->enableTexture();
+    // glUniform1i(causticsTextureLocation, 2);
+    // caustics->bindColorTexture(GL_TEXTURE2);
+
+    // terrainObj->setShader(terrainShader);
+    // terrainObj->draw();
+    // terrainShader->detach();    
+    // terrainTexture->unbind();
+
+    // caustics->unbindColorTexture();
 
     reflectFBO->unbind();
 
@@ -285,8 +311,8 @@ void testHeightfield() {
     waterShader->loadViewMatrix(camera->getViewMatrix());
     waterShader->loadLight(light);
 
-    glUniform1f(widthLocation, WIDTH);
-    glUniform1f(heightLocation, HEIGHT);
+    glUniform1f(widthLocation, DETAIL);
+    glUniform1f(heightLocation, DETAIL);
     glUniform1i(reflectionLocation, 2);
     glUniform1i(refractionLocation, 3);
 
@@ -381,8 +407,8 @@ int main(int argc, char* argv[]) {
     
     projectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 1000.0f);
 
-    water = new Heightfield(DETAIL, 2);
-    lightMesh = new LightMesh(1000);
+    water = new Heightfield(HEIGHTFIELD_DETAIL, HEIGHTFIELD_SCALE);
+    lightMesh = new LightMesh(LIGHTMESH_DETAIL, LIGHTMESH_SCALE);
     skybox = new Skybox();
     
     plane = new Object();
@@ -443,7 +469,7 @@ int main(int argc, char* argv[]) {
         refractFBO = new FBO(WINDOW_WIDTH, WINDOW_HEIGHT);
     #endif
 
-    terrain = new Terrain(1000);
+    terrain = new Terrain(TERRAIN_DETAIL, TERRAIN_SCALE);
     terrainObj = terrain->generateGeometry();
     // terrainObj->scale(20);
     // terrainObj->move(-0.5, -0.5, -0.5);

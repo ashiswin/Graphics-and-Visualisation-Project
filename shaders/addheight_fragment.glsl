@@ -14,14 +14,16 @@ void main() {
     float deltaX = 1 / width;
     float deltaY = 1 / height;
 
-    float x = gl_FragCoord.x / width;
-    float y = gl_FragCoord.y / height;
+    vec2 frag = gl_FragCoord.xy + vec2(0.5, 0.5);
+
+    float x = frag.x / width;
+    float y = frag.y / height;
 
     vec2 coord = vec2(x, y);
     
     vec4 texel = texture(textureSampler, coord);
 
-    float drop = max(0.0, 1.0 - length(location - gl_FragCoord.xy) / 10);
+    float drop = max(0.0, 1.0 - length(location - frag) / 20);
     drop = 0.5 - cos(drop * PI) * 0.5;
     texel.r += drop * amount;
 

@@ -16,13 +16,14 @@ class Object;
 
 class Terrain {
     public:
-        Terrain(int detail);
+        Terrain(int detail, float scale);
         void draw(Shader* shader);
         Object * generateGeometry();
 
     private:
         int detail;
-
+        float scale;
+        
         Object *plane;
 
 };

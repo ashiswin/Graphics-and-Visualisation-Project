@@ -53,9 +53,10 @@ int windices[] = {
     1, 2, 3
 };
 
-LightMesh::LightMesh(int detail) {
+LightMesh::LightMesh(int detail, float scale) {
     this->detail = detail;
-    
+    this->scale = scale;
+
     generateGeometry();
     prepareBuffers();
     prepareShaders();
@@ -97,7 +98,7 @@ void LightMesh::generateGeometry() {
 
     plane = new Object();
     plane->loadVertices(vertexArray, &indices[0], vertices.size(), indices.size());
-    plane->scale(2);
+    plane->scale(scale);
     // plane->loadVertices(wvertices, wtexcoords, wnormals, windices, 4, 6);
 }
 
