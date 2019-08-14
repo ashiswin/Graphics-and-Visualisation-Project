@@ -26,7 +26,7 @@
 
 #define WIDTH 150
 #define HEIGHT 150
-#define DETAIL 200
+#define DETAIL 400
 #define WINDOW_WIDTH 1920
 #define WINDOW_HEIGHT 1080
 
