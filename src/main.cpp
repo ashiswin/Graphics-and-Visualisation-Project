@@ -39,10 +39,12 @@ Object *quad;
 Object *plane;
 Terrain *terrain;
 Object *terrainObj;
+Object *submarine;
 
 Camera *camera, *reflectCamera, *refractCamera;
+Camera *underwaterCamera;
 DirectionalLight *light;
-Texture *terrainTexture;
+Texture *terrainTexture, *submarineTexture;
 
 FBO *fbo, *reflectFBO, *refractFBO;
 Heightfield *water;
@@ -208,19 +210,17 @@ void testHeightfield() {
     FBO *caustics = lightMesh->draw(projectionMatrix, camera, light);
     water->unbindNormalMap();
 
+    // std::cout << camera->getPosition().y << std::endl;
+
     // Render reflection
     reflectFBO->bind();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    reflectCamera->pitch = -camera->pitch;
-    reflectCamera->position = camera->position;
-    reflectCamera->position[1] = -camera->position[1];
-    
-    skybox->setClippingPlane(glm::vec4(0, 1, 0, 1));
-   
-    skybox->draw(projectionMatrix, reflectCamera->getViewMatrix());
-    skybox->disableClippingPlane();
+    // if (camera->getPosition().y >= 0) {
+        skybox->setClippingPlane(glm::vec4(0, 1, 0, 1));
+        skybox->draw(projectionMatrix, reflectCamera->getViewMatrix());
+        skybox->disableClippingPlane();
 
     reflectFBO->unbind();
 
@@ -229,41 +229,31 @@ void testHeightfield() {
 
     glClear(GL_COLOR_BUFFER_BIT);
 
-    skybox->setClippingPlane(glm::vec4(0, -1, 0, 1));
-    skybox->draw(projectionMatrix, camera->getViewMatrix());
-    skybox->disableClippingPlane();
+    if (camera->getPosition().y < 0) {
+        skybox->setClippingPlane(glm::vec4(0, 1, 0, 1));
+        skybox->draw(projectionMatrix, reflectCamera->getViewMatrix());
+        skybox->disableClippingPlane();
+    } else {
+        skybox->setClippingPlane(glm::vec4(0, -1, 0, 1));
+        skybox->draw(projectionMatrix, camera->getViewMatrix());
+        skybox->disableClippingPlane();
 
-    terrainTexture->bind(GL_TEXTURE0);
+        terrainTexture->bind(GL_TEXTURE0);
 
-    terrainShader->attach();
-    terrainShader->loadProjectionMatrix(projectionMatrix);
-    terrainShader->loadViewMatrix(camera->getViewMatrix());
-    terrainShader->enableTexture();
-    glUniform1i(causticsTextureLocation, 2);
-    caustics->bindColorTexture(GL_TEXTURE2);
+        terrainShader->attach();
+        terrainShader->loadProjectionMatrix(projectionMatrix);
+        terrainShader->loadViewMatrix(camera->getViewMatrix());
+        terrainShader->enableTexture();
+        glUniform1i(causticsTextureLocation, 2);
+        caustics->bindColorTexture(GL_TEXTURE2);
 
-    terrainObj->setShader(terrainShader);
-    terrainObj->draw();
-    terrainShader->detach();    
-    terrainTexture->unbind();
+        terrainObj->setShader(terrainShader);
+        terrainObj->draw();
+        terrainShader->detach();    
+        terrainTexture->unbind();
 
-    caustics->unbindColorTexture();
-    
-    // firstPass->attach();
-    // firstPass->loadProjectionMatrix(projectionMatrix);
-    // firstPass->loadViewMatrix(camera->getViewMatrix());
-    // firstPass->enableTexture();
-    // bowl->setShader(firstPass);
-    // bowl->draw();
-    // firstPass->detach();    
-
-    // firstPass->attach();
-    // firstPass->loadProjectionMatrix(projectionMatrix);
-    // firstPass->loadViewMatrix(camera->getViewMatrix());
-
-    // plane->setShader(firstPass);
-    // plane->draw();
-    
+        caustics->unbindColorTexture();
+    }
 
     refractFBO->unbind();
 
@@ -310,6 +300,15 @@ void testHeightfield() {
 
     caustics->unbindColorTexture();
 
+    // secondPass->attach();
+    // secondPass->loadProjectionMatrix(projectionMatrix);
+    // secondPass->loadViewMatrix(camera->getViewMatrix());
+    // secondPass->enableTexture();
+    // submarineTexture->bind(GL_TEXTURE0);
+    // submarine->draw();
+    // submarineTexture->unbind();
+    // secondPass->detach();
+
     glutSwapBuffers();
 }
 
@@ -348,9 +347,15 @@ int main(int argc, char* argv[]) {
     camera->move(0.5, 1.5, 1.5);
     camera->rotate(20, 0, 0);
 
+    // submarine = new Object();
+    // submarine->loadFromObj("assets/submarine.obj");
+    // submarineTexture = new Texture();
+    // submarineTexture->loadFromFile("assets/textures/submarine_tex.png");
+
     reflectCamera = new Camera();
-    reflectCamera->move(0, -2, -5);
-    // reflectCamera->rotate(-45, 0, 0);
+    reflectCamera->rotate(-30, 180, 0.0f);
+    reflectCamera->position = glm::vec3(0, -10, 5);
+    // reflectCamera->rotate(180, 0, 0);
     // refractCamera = new Camera();
     // refractCamera->move(0, 2, -5);
     // refractCamera->rotate(45, 0, 0);
@@ -424,7 +429,7 @@ int main(int argc, char* argv[]) {
     terrainObj->setShader(terrainShader);
 
     terrainTexture = new Texture();
-    terrainTexture->loadFromFile("assets/textures/wall.jpg");
+    terrainTexture->loadFromFile("assets/textures/tile2.jpg");
 
     glutKeyboardFunc(&keyPressed);
     glutMouseFunc(&mousePressed);

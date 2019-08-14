@@ -29,7 +29,7 @@ vec2 intersectCube(vec3 origin, vec3 ray, vec3 cubeMin, vec3 cubeMax) {\
 }
 
 vec3 project(vec3 origin, vec3 ray, vec3 refractedLight) {
-    vec2 tcube = intersectCube(origin, ray, vec3(-1.0, -1.0, -1.0), vec3(1.0, 2.0, 1.0));
+    vec2 tcube = intersectCube(origin, ray, vec3(-1.0, -0.5, -1.0), vec3(1.0, 2.0, 1.0));
     origin += ray * tcube.y;
     float tplane = (-origin.y - 1.0) / refractedLight.y;
     return origin + refractedLight * tplane;

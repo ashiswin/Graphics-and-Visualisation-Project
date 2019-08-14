@@ -10,6 +10,7 @@ class Camera {
         void move(float dx, float dy, float dz);
         glm::mat4 getViewMatrix();
         void rotate(float a, float b, float c);
+        glm::vec3 getPosition();
 
         glm::vec3 position;
         float pitch;
