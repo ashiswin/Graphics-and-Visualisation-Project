@@ -49,10 +49,12 @@ void main() {
   
   // if (distance < 60.0) {
     frag_colour = mix(reflectColor, refractColor, dot(normalize(toCameraVector), vec3(0, 1, 0)));
-    // frag_colour = mix(reflectColor, refractColor, 0.1);
+    if (reflectedDirection.y < 0.0)
+      frag_colour = mix(frag_colour, vec4(1.0, 1.0, 1.25, 1.0), 0.1);
     // frag_colour = reflectColor;
   // }
   // else {
     // discard;
   // }
+  // frag_colour = vec4(1, 0, 0, 1);
 }

@@ -21,7 +21,7 @@ void main() {
     
     vec4 texel = texture(textureSampler, coord);
 
-    float drop = max(0.0, 1.0 - length(location - gl_FragCoord.xy) / 2);
+    float drop = max(0.0, 1.0 - length(location - gl_FragCoord.xy) / 10);
     drop = 0.5 - cos(drop * PI) * 0.5;
     texel.r += drop * amount;
 

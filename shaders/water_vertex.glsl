@@ -23,7 +23,7 @@ uniform vec3 lightDirection;
 uniform sampler2D textureSampler;
 
 void main() {
-    vec2 texCoords = vec2(position.x / width, -position.z / height);
+    vec2 texCoords = vec2(position.x, -position.z);
     pass_texCoords = texCoords;
 
     vec4 texel = texture(textureSampler, texCoords);

@@ -35,10 +35,10 @@ int qindices[] = {
     1, 2, 3
 };
 
-Heightfield::Heightfield(int width, int height) {
-    this->width = width;
-    this->height = height;
-    this->modelMatrix = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(0.1, 0.1, 0.1)), glm::vec3(-width / 2, 0, 0));
+Heightfield::Heightfield(int detail) {
+    this->detail = detail;
+    
+    this->modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0.2, 0));
 
     prepareBuffers();
     prepareShaders();
@@ -59,9 +59,9 @@ void Heightfield::prepareBuffers() {
     glGenBuffers(1, &indicesVBO);
     glGenVertexArrays(1, &vaoId);
 
-    heightA = new FBO(width, height);
-    heightB = new FBO(width, height);
-    normals = new FBO(width, height);
+    heightA = new FBO(detail, detail);
+    heightB = new FBO(detail, detail);
+    normals = new FBO(detail, detail);
 }
 
 void Heightfield::prepareShaders() {
@@ -103,21 +103,21 @@ void Heightfield::generateGeometry() {
     std::vector<glm::vec3> vertices;
     std::vector<unsigned> indices;
 
-    for(int i = 0; i < height; i++) {
-        for(int j = 0; j < width; j++) {
-            vertices.push_back(glm::vec3(i, 0, -j));
+    for(int i = 0; i < detail; i++) {
+        for(int j = 0; j < detail; j++) {
+            vertices.push_back(glm::vec3(i / (float) detail, 0, -j / (float) detail));
 
             if(i == 0 || j == 0) continue;
 
             // Top left triangle
-            indices.push_back(((i - 1) * width) + j - 1);
-            indices.push_back(((i - 1) * width) + j);
-            indices.push_back((i * width) + j - 1);
+            indices.push_back(((i - 1) * detail) + j - 1);
+            indices.push_back(((i - 1) * detail) + j);
+            indices.push_back((i * detail) + j - 1);
 
             // Bottom right triangle
-            indices.push_back(((i - 1) * width) + j);
-            indices.push_back((i * width) + j);
-            indices.push_back((i * width) + j - 1);
+            indices.push_back(((i - 1) * detail) + j);
+            indices.push_back((i * detail) + j);
+            indices.push_back((i * detail) + j - 1);
         }
     }
 
@@ -195,8 +195,8 @@ void Heightfield::addHeight(float amount, glm::vec2 location) {
 
     glUniform2fv(addHeightLocationLocation, 1, &location[0]);
     glUniform1f(addHeightAmountLocation, amount);
-    glUniform1f(addHeightWidthLocation, width);
-    glUniform1f(addHeightHeightLocation, height);
+    glUniform1f(addHeightWidthLocation, detail);
+    glUniform1f(addHeightHeightLocation, detail);
 
     heightB->bind(); // render to height B
     heightA->bindColorTexture(GL_TEXTURE0);
@@ -232,8 +232,8 @@ void Heightfield::stepSimulation() {
     // Object *o = new Object();
     // o->loadVertices(qvertices, qtexcoords, qnormals, qindices, 4, 6);
     
-    glUniform1f(stepSimulationWidthLocation, width);
-    glUniform1f(stepSimulationHeightLocation, height);
+    glUniform1f(stepSimulationWidthLocation, detail);
+    glUniform1f(stepSimulationHeightLocation, detail);
 
     heightB->bind(); // render to height B
     heightA->bindColorTexture(GL_TEXTURE0);
@@ -269,8 +269,8 @@ void Heightfield::calculateNormals() {
     // Object *o = new Object();
     // o->loadVertices(qvertices, qtexcoords, qnormals, qindices, 4, 6);
     
-    glUniform1f(normalCalculationWidthLocation, width);
-    glUniform1f(normalCalculationHeightLocation, height);
+    glUniform1f(normalCalculationWidthLocation, detail);
+    glUniform1f(normalCalculationHeightLocation, detail);
 
     heightB->bind(); // render to height B
     heightA->bindColorTexture(GL_TEXTURE0);

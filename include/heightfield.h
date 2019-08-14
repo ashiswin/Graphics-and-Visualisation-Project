@@ -10,7 +10,7 @@ class Object;
 
 class Heightfield {
     public:
-        Heightfield(int width, int height);
+        Heightfield(int detail);
         void draw(Shader* shader);
         void addHeight(float amount, glm::vec2 location);
         void lightShading(FBO *reflectFBO, FBO *refractFBO);
@@ -37,8 +37,7 @@ class Heightfield {
         GLuint verticesVBO;
         GLuint indicesVBO;
 
-        int width;
-        int height;
+        int detail;
         int nVertices;
         int nIndices;
 

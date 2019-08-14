@@ -50,8 +50,8 @@ void main() {
     newPosition = project(position.xzy + vec3(0.0, texel.r, 0.0), warpedRefraction, plainRefraction);
     rayDirection = warpedRefraction;
 
-    // gl_Position = vec4(0.75 * (newPosition.xz + plainRefraction.xz / plainRefraction.y), 0.0, 1.0);
-    gl_Position = vec4(position, 1);
+    // gl_Position = vec4((newPosition.xz + plainRefraction.xz / plainRefraction.y), 0.0, 1.0);
+    gl_Position = vec4((position + vec3(1, 1, 0)) * 0.5, 1);
     pass_position = gl_Position.xy;
     // pass_position = 0.75 * (newPosition.xz + plainRefraction.xz / plainRefraction.y);
 }

@@ -95,7 +95,7 @@ void LightMesh::generateGeometry() {
 }
 
 void LightMesh::prepareBuffers() {
-    caustics = new FBO(800, 600);
+    caustics = new FBO(2048, 2048);
 }
 void LightMesh::prepareShaders() {
     causticShader = new Shader();
@@ -109,6 +109,7 @@ void LightMesh::prepareShaders() {
 FBO *LightMesh::draw(glm::mat4 projectionMatrix, Camera *camera, DirectionalLight *light) {
 
     caustics->bind();
+    glViewport(0, 0, 2048, 2048);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     causticShader->attach();
@@ -136,6 +137,7 @@ FBO *LightMesh::draw(glm::mat4 projectionMatrix, Camera *camera, DirectionalLigh
     // }
 
     caustics->unbind();
+    glViewport(0, 0, 800, 600);
     causticShader->detach();
 
     return caustics;

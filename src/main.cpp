@@ -19,8 +19,9 @@
 #include <lightmesh.h>
 #include <skybox.h>
 
-#define WIDTH 100
-#define HEIGHT 100
+#define WIDTH 150
+#define HEIGHT 150
+#define DETAIL 200
 
 // Shader *shader;
 // Shader *simple, *simple_tex;
@@ -28,9 +29,11 @@
 Shader *firstPass;
 Shader *secondPass;
 Shader *waterShader;
+Shader *terrainShader;
 
 GLuint widthLocation, heightLocation;
 GLuint reflectionLocation, refractionLocation, planeLocation;
+GLuint causticsTextureLocation;
 Object *quad;
 // Object *skybox;
 Object *plane;
@@ -114,27 +117,28 @@ void keyPressed(unsigned char c, int x, int y) {
     switch(c) {
         case 'w':
             camera->move(0, 1, 0);
-            refractCamera->move(0, 1, 0);
+            // refractCamera->move(0, 1, 0);
             reflectCamera->move(0, -1, 0);
             break;
         case 'd':
             camera->move(1, 0, 0);
-            refractCamera->move(1, 0, 0);
+            // refractCamera->move(1, 0, 0);
             reflectCamera->move(1, 0, 0);
             break;
         case 'a':
             camera->move(-1, 0, 0);
-            refractCamera->move(-1, 0, 0);
+            // refractCamera->move(-1, 0, 0);
             reflectCamera->move(-1, 0, 0);
             break;
         case 's':
             camera->move(0, -1, 0);
-            refractCamera->move(0, -1, 0);
+            // refractCamera->move(0, -1, 0);
             reflectCamera->move(0, 1, 0);
             break;
         case 'v':
             // water->addHeight(10.0, glm::vec2(WIDTH / 2, HEIGHT / 2));
-            water->addHeight(10 + rand() % 20, glm::vec2(rand() % WIDTH, rand() % HEIGHT));
+            // water->addHeight(0.1 + rand() % 20, glm::vec2(rand() % WIDTH, rand() % HEIGHT));
+            water->addHeight(0.1 + rand()%1, glm::vec2(rand() % WIDTH, rand() % HEIGHT));
             break;
         case 'c':
             water->stepSimulation();
@@ -149,6 +153,7 @@ void update() {
     // Begin first pass of rendering (render to FBO)
     std::cout << "Begin first pass" << std::endl;
     // TODO: Bind FBO for drawing
+    
     fbo->bind();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -186,6 +191,7 @@ void update() {
 
 void testHeightfield() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
 
     GLenum err;
     while((err = glGetError()) != GL_NO_ERROR)
@@ -197,6 +203,10 @@ void testHeightfield() {
     {
         std::cout << "Error in Object::thf 1: " << err << std::endl;
     }
+
+    water->bindNormalMap();
+    FBO *caustics = lightMesh->draw(projectionMatrix, camera, light);
+    water->unbindNormalMap();
 
     // Render reflection
     reflectFBO->bind();
@@ -217,11 +227,27 @@ void testHeightfield() {
     // Render refraction
     refractFBO->bind();
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-    // skybox->setClippingPlane(glm::vec4(0, -1, 0, 1));
-    // skybox->draw(projectionMatrix, camera->getViewMatrix());
-    // skybox->disableClippingPlane();
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    skybox->setClippingPlane(glm::vec4(0, -1, 0, 1));
+    skybox->draw(projectionMatrix, camera->getViewMatrix());
+    skybox->disableClippingPlane();
+
+    terrainTexture->bind(GL_TEXTURE0);
+
+    terrainShader->attach();
+    terrainShader->loadProjectionMatrix(projectionMatrix);
+    terrainShader->loadViewMatrix(camera->getViewMatrix());
+    terrainShader->enableTexture();
+    glUniform1i(causticsTextureLocation, 2);
+    caustics->bindColorTexture(GL_TEXTURE2);
+
+    terrainObj->setShader(terrainShader);
+    terrainObj->draw();
+    terrainShader->detach();    
+    terrainTexture->unbind();
+
+    caustics->unbindColorTexture();
     
     // firstPass->attach();
     // firstPass->loadProjectionMatrix(projectionMatrix);
@@ -238,8 +264,10 @@ void testHeightfield() {
     // plane->setShader(firstPass);
     // plane->draw();
     
+
     refractFBO->unbind();
 
+    // Begin final pass
     skybox->draw(projectionMatrix, camera->getViewMatrix());
 
     waterShader->attach();
@@ -262,19 +290,23 @@ void testHeightfield() {
     
     waterShader->detach();
 
-    water->bindNormalMap();
-    FBO *caustics = lightMesh->draw(projectionMatrix, camera, light);
-    water->unbindNormalMap();
-    secondPass->attach();
-    secondPass->loadProjectionMatrix(projectionMatrix);
-    secondPass->loadViewMatrix(camera->getViewMatrix());
-    secondPass->enableTexture();
+    // water->bindNormalMap();
+    // FBO *caustics = lightMesh->draw(projectionMatrix, camera, light);
+    // water->unbindNormalMap();
 
-    caustics->bindColorTexture(GL_TEXTURE0);
+    terrainTexture->bind(GL_TEXTURE0);
 
-    terrainObj->setShader(secondPass);
+    terrainShader->attach();
+    terrainShader->loadProjectionMatrix(projectionMatrix);
+    terrainShader->loadViewMatrix(camera->getViewMatrix());
+    terrainShader->enableTexture();
+    glUniform1i(causticsTextureLocation, 2);
+    caustics->bindColorTexture(GL_TEXTURE2);
+
+    terrainObj->setShader(terrainShader);
     terrainObj->draw();
-    secondPass->detach();    
+    terrainShader->detach();    
+    terrainTexture->unbind();
 
     caustics->unbindColorTexture();
 
@@ -313,13 +345,13 @@ int main(int argc, char* argv[]) {
     glClearDepth(1.0);
     
     camera = new Camera();
-    camera->move(0, 5, 10);
+    camera->move(0.5, 1.5, 1.5);
     camera->rotate(20, 0, 0);
 
     reflectCamera = new Camera();
     reflectCamera->move(0, -2, -5);
     // reflectCamera->rotate(-45, 0, 0);
-    refractCamera = new Camera();
+    // refractCamera = new Camera();
     // refractCamera->move(0, 2, -5);
     // refractCamera->rotate(45, 0, 0);
 
@@ -327,8 +359,8 @@ int main(int argc, char* argv[]) {
     
     projectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 1000.0f);
 
-    water = new Heightfield(WIDTH, HEIGHT);
-    lightMesh = new LightMesh(200);
+    water = new Heightfield(DETAIL);
+    lightMesh = new LightMesh(500);
     skybox = new Skybox();
     
     plane = new Object();
@@ -366,6 +398,14 @@ int main(int argc, char* argv[]) {
     secondPass->attachShader(GL_FRAGMENT_SHADER, "shaders/simple_textured_fragment.glsl");
     if(!secondPass->compile()) std::cout << "Error compiling second pass shader!" << std::endl;
 
+    // shader for terrain
+    terrainShader = new Shader();
+    terrainShader->attachShader(GL_VERTEX_SHADER, "shaders/simple_vertex.glsl");
+    terrainShader->attachShader(GL_FRAGMENT_SHADER, "shaders/terrain_textured_fragment.glsl");
+    if(!terrainShader->compile()) std::cout << "Error compiling terrain shader!" << std::endl;
+
+    causticsTextureLocation = terrainShader->getUniformLocation("causticsTexture");
+
     planeLocation = secondPass->getUniformLocation("plane");
 
     quad = new Object();
@@ -375,13 +415,16 @@ int main(int argc, char* argv[]) {
     reflectFBO = new FBO(800, 600);
     refractFBO = new FBO(800, 600);
 
-    terrain = new Terrain(100);
+    terrain = new Terrain(1000);
     terrainObj = terrain->generateGeometry();
-    terrainObj->scale(20);
-    terrainObj->move(-0.5, -0.5, -0.5);
+    // terrainObj->scale(20);
+    // terrainObj->move(-0.5, -0.5, -0.5);
     glm::vec3 position = glm::vec3(120, -3, -100);
     firstPass->loadCenterBowl(position);
-    terrainObj->setShader(secondPass);
+    terrainObj->setShader(terrainShader);
+
+    terrainTexture = new Texture();
+    terrainTexture->loadFromFile("assets/textures/wall.jpg");
 
     glutKeyboardFunc(&keyPressed);
     glutMouseFunc(&mousePressed);
