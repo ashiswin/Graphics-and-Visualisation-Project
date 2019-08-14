@@ -1,6 +1,12 @@
 #include <GL/glew.h>
-#include <OpenGL/gl3.h>
-#include <GLUT/glut.h>
+#ifdef __APPLE__
+	#include <OpenGL/gl3.h>
+	#include <GLUT/glut.h>
+#else
+	#include <GL/gl.h>
+	#include <GL/freeglut.h>
+#endif
+
 #include <stdio.h>
 #include <iostream>
 #include <time.h>
@@ -137,7 +143,6 @@ FBO *LightMesh::draw(glm::mat4 projectionMatrix, Camera *camera, DirectionalLigh
     // }
 
     caustics->unbind();
-    glViewport(0, 0, 800, 600);
     causticShader->detach();
 
     return caustics;

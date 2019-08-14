@@ -1,6 +1,11 @@
 #include <GL/glew.h>
-#include <OpenGL/gl3.h>
-#include <GLUT/glut.h>
+#ifdef __APPLE__
+	#include <OpenGL/gl3.h>
+	#include <GLUT/glut.h>
+#else
+	#include <GL/gl.h>
+	#include <GL/freeglut.h>
+#endif
 #include <stdio.h>
 #include <iostream>
 #include <time.h>
@@ -22,6 +27,8 @@
 #define WIDTH 150
 #define HEIGHT 150
 #define DETAIL 200
+#define WINDOW_WIDTH 1280
+#define WINDOW_HEIGHT 800
 
 // Shader *shader;
 // Shader *simple, *simple_tex;
@@ -258,6 +265,8 @@ void testHeightfield() {
     refractFBO->unbind();
 
     // Begin final pass
+    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+
     skybox->draw(projectionMatrix, camera->getViewMatrix());
 
     waterShader->attach();
@@ -279,10 +288,6 @@ void testHeightfield() {
     refractFBO->unbindColorTexture();
     
     waterShader->detach();
-
-    // water->bindNormalMap();
-    // FBO *caustics = lightMesh->draw(projectionMatrix, camera, light);
-    // water->unbindNormalMap();
 
     terrainTexture->bind(GL_TEXTURE0);
 
@@ -325,9 +330,17 @@ int main(int argc, char* argv[]) {
 
 	glutInit(&argc, argv);
 
-    glutInitDisplayMode(GLUT_3_2_CORE_PROFILE | GLUT_DOUBLE | GLUT_DEPTH | GLUT_MULTISAMPLE);
-    glutInitWindowSize(800, 600);
-	glutCreateWindow( "OpenGL" );
+    #ifdef __APPLE__
+        glutInitDisplayMode(GLUT_3_2_CORE_PROFILE | GLUT_DOUBLE | GLUT_DEPTH | GLUT_MULTISAMPLE);
+        glutInitWindowSize(800, 600);
+        glutCreateWindow( "OpenGL" );
+    #else
+        glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA | GLUT_MULTISAMPLE);	
+        glutInitContextVersion (4, 1);
+        glutInitContextFlags (GLUT_CORE_PROFILE | GLUT_DEBUG);
+        glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+        glutCreateWindow("OpenGL 4.1");
+    #endif
     
     glewExperimental = GL_TRUE;
     if(glewInit() != GLEW_OK) printf("GLEW init failed");
@@ -355,10 +368,6 @@ int main(int argc, char* argv[]) {
     reflectCamera = new Camera();
     reflectCamera->rotate(-30, 180, 0.0f);
     reflectCamera->position = glm::vec3(0, -10, 5);
-    // reflectCamera->rotate(180, 0, 0);
-    // refractCamera = new Camera();
-    // refractCamera->move(0, 2, -5);
-    // refractCamera->rotate(45, 0, 0);
 
     light = new DirectionalLight(glm::vec3(0, -1, 0), glm::vec3(1, 1, 1));
     

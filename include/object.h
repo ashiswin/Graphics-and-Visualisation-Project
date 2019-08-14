@@ -1,7 +1,12 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
-#include <OpenGL/gl3.h>
+#ifdef __APPLE__
+	#include <OpenGL/gl3.h>
+#else
+	#include <GL/glew.h>
+	#include <GL/gl.h>
+#endif
 #include <glm/mat4x4.hpp>
 
 class Shader;

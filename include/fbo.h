@@ -1,7 +1,12 @@
 #ifndef FBO_H
 #define FBO_H
 
-#include <OpenGL/gl3.h>
+#ifdef __APPLE__
+	#include <OpenGL/gl3.h>
+#else
+	#include <GL/glew.h>
+	#include <GL/gl.h>
+#endif
 
 class FBO {
     public:
