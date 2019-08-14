@@ -27,8 +27,8 @@
 #define WIDTH 150
 #define HEIGHT 150
 #define DETAIL 200
-#define WINDOW_WIDTH 1280
-#define WINDOW_HEIGHT 800
+#define WINDOW_WIDTH 1920
+#define WINDOW_HEIGHT 1080
 
 // Shader *shader;
 // Shader *simple, *simple_tex;
@@ -265,7 +265,11 @@ void testHeightfield() {
     refractFBO->unbind();
 
     // Begin final pass
-    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    #ifdef __APPLE__
+        glViewport(0, 0, 800, 600);
+    #else
+        glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    #endif
 
     skybox->draw(projectionMatrix, camera->getViewMatrix());
 
@@ -360,11 +364,6 @@ int main(int argc, char* argv[]) {
     camera->move(0.5, 1.5, 1.5);
     camera->rotate(20, 0, 0);
 
-    // submarine = new Object();
-    // submarine->loadFromObj("assets/submarine.obj");
-    // submarineTexture = new Texture();
-    // submarineTexture->loadFromFile("assets/textures/submarine_tex.png");
-
     reflectCamera = new Camera();
     reflectCamera->rotate(-30, 180, 0.0f);
     reflectCamera->position = glm::vec3(0, -10, 5);
@@ -384,7 +383,7 @@ int main(int argc, char* argv[]) {
     firstPass->attachShader(GL_VERTEX_SHADER, "shaders/simple_vertex.glsl");
     firstPass->attachShader(GL_FRAGMENT_SHADER, "shaders/simple_fragment.glsl");
     if(!firstPass->compile()) std::cout << "Error compiling first pass shader!" << std::endl;
-    // firstPass->enableTexture();
+    
     GLenum err;
     while((err = glGetError()) != GL_NO_ERROR)
     {
