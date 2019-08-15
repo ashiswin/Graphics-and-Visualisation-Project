@@ -47,7 +47,7 @@ void main() {
   vec4 reflectColor = texture(reflectionTexture, pass_texCoords);
   vec4 refractColor = texture(refractionTexture, refractTexCoords);
   
-  frag_colour = mix(reflectColor, refractColor, dot(normalize(toCameraVector), vec3(0, 1, 0)));
+  frag_colour = mix(reflectColor, refractColor, dot(normalize(toCameraVector), vec3(0, 1, 0)) / 2);
   if (reflectedDirection.y < 0.0)
     frag_colour = mix(frag_colour, vec4(1.25, 1.25, 1.25, 1.0), 0.1) + vec4(diffuse, 1.0);
 }
