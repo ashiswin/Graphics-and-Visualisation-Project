@@ -153,7 +153,7 @@ void keyPressed(unsigned char c, int x, int y) {
             camera->move(0, -.1, 0);
             break;
         case 'v':
-            water->addHeight(0.1 + rand()%1, glm::vec2(rand() % DETAIL*HEIGHTFIELD_SCALE, rand() % DETAIL*HEIGHTFIELD_SCALE));
+            water->addHeight(.5 + rand()%1, glm::vec2(rand() % DETAIL*HEIGHTFIELD_SCALE, rand() % DETAIL*HEIGHTFIELD_SCALE));
             break;
         case 'c':
             water->stepSimulation();
@@ -413,8 +413,8 @@ int main(int argc, char* argv[]) {
     glClearDepth(1.0);
     
     camera = new Camera();
-    camera->move(0.5, 1.5, 1.5);
-    camera->rotate(20, 0, 0);
+    camera->move(1, 2.5, 0.5);
+    camera->rotate(60, 0, 0);
 
     reflectCamera = new Camera();
     reflectCamera->rotate(-30, 180, 0.0f);
