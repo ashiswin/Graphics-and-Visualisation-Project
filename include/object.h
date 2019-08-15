@@ -27,8 +27,10 @@ class Object {
 
         void draw();
         void spin();
-        void scale(int val);
+        void rotate(float pitch, float yaw, float roll);
+        void scale(float x, float y, float z);
         void move(float dx, float dy, float dz);
+        void loadSphere(float sectorCount, float stackCount, float radius);
         
     private:
         GLuint verticesVBO;
@@ -44,6 +46,7 @@ class Object {
         float yaw;
 
         bool hasTextures = false;
+        bool hasNormals = false;
         bool hasNormalMap = false;
         float reflectivity, shineDampener;
         Texture* texture;

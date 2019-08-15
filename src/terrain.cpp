@@ -16,7 +16,7 @@ Object * Terrain::generateGeometry() {
 
     for(int i = 0; i < detail; i++) {
         for(int j = 0; j < detail; j++) {
-            vertices.push_back(glm::vec3(i / (float) detail, ((i + j) / 16) / (float) detail - 0.1, -j / (float) detail));
+            vertices.push_back(glm::vec3(i / (float) detail, ((i + j) / 8) / (float) detail - 0.5, -j / (float) detail));
 
             if(i == 0 || j == 0) continue;
 
@@ -45,6 +45,6 @@ Object * Terrain::generateGeometry() {
 
     plane = new Object();
     plane->loadVertices(vertexArray, &indices[0], vertices.size(), indices.size());
-    plane->scale(scale);
+    plane->scale(scale, 1, scale);
     return plane;
 }

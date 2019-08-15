@@ -42,15 +42,17 @@ void main() {
   float dampedFactor = pow(specular, shineDamper);
   vec3 finalSpecular = dampedFactor * reflectivity * lightColor;
 
+  float distance = sqrt(pow(position_out[0] - (+127.0), 2) + pow(position_out[1] - (0.0), 2) + pow(position_out[2] - (-180.0), 2));
+
   vec4 reflectColor = texture(reflectionTexture, pass_texCoords);
   vec4 refractColor = texture(refractionTexture, refractTexCoords);
   
-  float distance = sqrt(pow(position_out[0] - (+127.0), 2) + pow(position_out[1] - (0.0), 2) + pow(position_out[2] - (-180.0), 2));
-  
   // if (distance < 60.0) {
-    frag_colour = mix(reflectColor, refractColor, dot(normalize(toCameraVector), vec3(0, 1, 0)));
-    if (reflectedDirection.y < 0.0)
-      frag_colour = mix(frag_colour, vec4(1.0, 1.0, 1.25, 1.0), 0.1);
+  frag_colour = mix(reflectColor, refractColor, dot(normalize(toCameraVector), vec3(0, 1, 0)));
+  if (reflectedDirection.y < 0.0)
+    frag_colour = mix(frag_colour, vec4(1.0, 1.0, 1.25, 1.0), 0.1);
+
+
     // frag_colour = reflectColor;
   // }
   // else {

@@ -11,7 +11,7 @@ void main() {
     float deltaX = 1 / width;
     float deltaY = 1 / height;
 
-    vec2 coord = vec2(gl_FragCoord.x / width, gl_FragCoord.y / height);
+    vec2 coord = vec2((gl_FragCoord.x + 0.5 )/ width, (gl_FragCoord.y + 0.5) / height);
     
     vec4 texel = texture(textureSampler, coord);
 

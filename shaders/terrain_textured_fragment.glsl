@@ -25,4 +25,5 @@ void main() {
     scale += diffuse * caustic.r * 2.0 * caustic.g;\
 
     frag_colour = texel * scale;
+    // frag_colour = vec4(0, caustic.g, 0, 1);
 }

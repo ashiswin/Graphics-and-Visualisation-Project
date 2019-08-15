@@ -41,6 +41,7 @@ Shader *firstPass;
 Shader *secondPass;
 Shader *waterShader;
 Shader *terrainShader;
+Shader *sphereShader;
 
 GLuint widthLocation, heightLocation;
 GLuint reflectionLocation, refractionLocation, planeLocation;
@@ -50,12 +51,12 @@ Object *quad;
 Object *plane;
 Terrain *terrain;
 Object *terrainObj;
-Object *submarine;
+Object *ball;
 
 Camera *camera, *reflectCamera, *refractCamera;
 Camera *underwaterCamera;
 DirectionalLight *light;
-Texture *terrainTexture, *submarineTexture;
+Texture *terrainTexture;
 
 FBO *fbo, *reflectFBO, *refractFBO;
 Heightfield *water;
@@ -137,6 +138,7 @@ void mouseMoved(int x, int y) {
 }
 
 void keyPressed(unsigned char c, int x, int y) {
+    // std::cout << "LOL" << std::endl;
     switch(c) {
         case 'w':
             camera->move(0, .1, 0);
@@ -293,6 +295,19 @@ void testHeightfield() {
         terrainTexture->unbind();
 
         caustics->unbindColorTexture();
+        sphereShader->attach();
+        sphereShader->loadProjectionMatrix(projectionMatrix);
+        sphereShader->loadViewMatrix(camera->getViewMatrix());
+        sphereShader->loadLight(light);
+        sphereShader->enableTexture();
+        caustics->bindColorTexture(GL_TEXTURE0);
+        ball->setShader(sphereShader);
+        
+        ball->rotate(180, 0, 0);
+        ball->draw();
+        ball->rotate(-180, 0, 0);
+        caustics->unbindColorTexture();
+        sphereShader->detach();
     }
 
     refractFBO->unbind();
@@ -341,15 +356,17 @@ void testHeightfield() {
     terrainTexture->unbind();
 
     caustics->unbindColorTexture();
-
-    // secondPass->attach();
-    // secondPass->loadProjectionMatrix(projectionMatrix);
-    // secondPass->loadViewMatrix(camera->getViewMatrix());
-    // secondPass->enableTexture();
-    // submarineTexture->bind(GL_TEXTURE0);
-    // submarine->draw();
-    // submarineTexture->unbind();
-    // secondPass->detach();
+    
+    sphereShader->attach();
+    sphereShader->loadProjectionMatrix(projectionMatrix);
+    sphereShader->loadViewMatrix(camera->getViewMatrix());
+    sphereShader->loadLight(light);
+    sphereShader->enableTexture();
+    caustics->bindColorTexture(GL_TEXTURE0);
+    ball->setShader(sphereShader);
+    ball->draw();
+    caustics->unbindColorTexture();
+    sphereShader->detach();
 
     glutSwapBuffers();
 }
@@ -405,7 +422,7 @@ int main(int argc, char* argv[]) {
 
     light = new DirectionalLight(glm::vec3(0, -1, 0), glm::vec3(1, 1, 1));
     
-    projectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 1000.0f);
+    projectionMatrix = glm::perspective(glm::radians(45.0f), WINDOW_WIDTH / (float) WINDOW_HEIGHT, 0.1f, 1000.0f);
 
     water = new Heightfield(HEIGHTFIELD_DETAIL, HEIGHTFIELD_SCALE);
     lightMesh = new LightMesh(LIGHTMESH_DETAIL, LIGHTMESH_SCALE);
@@ -480,6 +497,17 @@ int main(int argc, char* argv[]) {
     terrainTexture = new Texture();
     terrainTexture->loadFromFile("assets/textures/tile2.jpg");
 
+    ball = new Object();
+    ball->loadSphere(100, 100, 0.1);
+    ball->move(1, 0, -1.0);
+
+    sphereShader = new Shader();
+    std::cout << "Compiling sphere vertex shader..." << std::endl;
+    sphereShader->attachShader(GL_VERTEX_SHADER, "shaders/sphere_vertex.glsl");
+    std::cout << "Compiling sphere fragment shader..." << std::endl;
+    sphereShader->attachShader(GL_FRAGMENT_SHADER, "shaders/sphere_fragment.glsl");
+    if(!sphereShader->compile()) std::cout << "Error compiling sphere shader!" << std::endl;
+    
     glutKeyboardFunc(&keyPressed);
     glutMouseFunc(&mousePressed);
     glutMotionFunc(&mouseMoved);

@@ -21,7 +21,8 @@ void main() {
     vec4 caustic = texture(causticsTex, 0.75 * (point.xz - point.y * refractedLight.xz / refractedLight.y) * 0.5 + 0.5);
     scale += diffuse * caustic.r * 2.0 * caustic.g;
     
-    frag_colour = texel * scale;
+    frag_colour = vec4(0, caustic.g, 0, 1);
+    // frag_colour = texel * scale;
     // frag_colour = caustic;
     // frag_colour = vec4(pass_texCoords.x, -pass_texCoords.y, 0, 1);
 }
